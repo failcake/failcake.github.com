@@ -1,0 +1,86 @@
+---
+layout: post
+title: "Leveraged neatness is not always your friend"
+date: 2012-09-11 15:19
+comments: true
+author: JHR
+categories: [epic handwave,avoiding work by making lists,difficult second version]
+---
+
+I must begin by apologising for using the word 'leveraged'. It's terrible
+ marketing-speak. However, it mostly fits in context and anyway I am using
+ it in an ironic sense. (not that that's even a valid excuse for the likes
+ of me, but there you go.)
+
+There are certain aspects of the admin trades where semi-obsessive neatness
+and/or attention to detail are useful things to have. It's one of the times
+where not being able to leave the house without checking that you've turned the
+gas off twice and locked the front door three times can be a positive thing to
+admit in an interview. [NB: Self-deprecating hyperbole.]
+
+It can also lead to the sort of unfortunate failure-modes that if you're lucky
+you're not familiar with.
+
+(This was all kicked off by one of the network guys asking me some hard
+questions about the nature of packaging and dependencies, which set me off on a
+bit of a ramble. Thus network types get it first. Beard-fondling admins get
+their kicking later.)
+
+<!-- more -->
+
+Twice now, I've been in jobs where the greater part of the network has been
+rebuilt. If you imagine _everything_ being lifted up while new wires are
+plumbed in by a selection of blokes with disturbing arsecracks, then you'd not
+be far wrong. Towards the end of the work, the relevant network manager has
+(metaphorically) straightened up, dusted off their hands and declared the task 
+complete. And then the terrible oiks in charge of the servers have started
+migrating services to the shiny new bits of wire, to discover that only about a
+third of the routes are in place and next to none of the odd ports required to
+make the databases work or sodding undocumented OSX distributed p/w malarkey.
+Thus there's a sudden pile of change-requests (or an aggrieved queue next to
+the network manager's cube) followed by quite a lot of grousing about 'making
+my nice clean network diagram all complicated with your filthy packets and
+honestly why are you people even _using_ Oracle?'
+
+Which, um, yes.
+
+Meanwhile, there used to be one of those Rules of Thumb that became
+over-generalised by people who were massively missing the point on purpose. It
+went along the lines of 'the process-list on your unix box should only be about
+a screen long, and if you don't _know_ what the various jobs are doing and
+which ports they're using, disable them. 
+
+That's actually sensible behaviour if you're talking about some hateful SysV
+box that's acting as a firewall or bastion host back in the old days when
+Solaris was a relevant OS (Pre Y2K) and everything came with inetd enabled with
+the tiresome daemons that no-one understood. (ticotsord? Daft name for anything
+that's not a planet in a space-trading MMO.)
+
+However, it's only going to make everyone else hate you if you drag that
+attitude along into the world of Linux distros and try to out-stubborn the
+package-manager. Don't do that. I know that sinking feeling when I see the
+resulting trail of gubbins that gets hauled in like tin cans on string
+following the bride & groom's car in a Carry-on film when I type 'apt-get
+install default-jre', and I have learned to let it go. 
+
+Not letting that sort of thing go ends in something like 'And that, your
+honour, is when I decided to create my own Linux distribution...' 
+
+It happens in tool-building, too. One of the things I half-promised myself was
+that the stomp-git daemon would never do anything careless with the
+repositories. All it would do is a 'git fetch' and anything further would be
+under the control of a carbon-unit. That was a splendid plan until I discovered
+that actually I needed the thing to keep a Puppetmaster tree in sync behind a
+firewall. Well, ok. That's a special mode which requires a specific
+command-line option which is well documented in the config file and the
+initscript.
+
+Then I needed to keep a hieradata tree in sync across two puppetmasters, and an
+(this!) Octopress install working, and it turned out that some rearranging of
+the config file made the code less worse and the ease of doing dangerous thing
+more better.
+
+I'm not sure how I feel about that. It's made several things really quite
+trivial, but it really doesn't sit well with me.
+
+Funny business, code.

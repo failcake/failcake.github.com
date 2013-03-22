@@ -1,0 +1,19 @@
+---
+layout: post
+title: "EMFcamp"
+date: 2012-09-05 21:25
+comments: true
+author: JHR
+categories: [humppa,having it average,sunburned hackers] 
+---
+
+For reasons that seemed jolly sensible at the time (ie - someone dared me to do it) I gave
+a much-modified version of The Puppetcamp Talk at [EMFcamp](https://www.emfcamp.org/). Modified in that it was four
+months later and we'd made some things work better, abandoned others and had some mostly-bright 
+ideas for new stuff.
+
+Thus linked here somewhere should be [the PDF version of the slides](/downloads/emfcamp.pdf), which because I am that sort of 
+forward-thinking sod (actually, I'd seen this be a requirement at 28c3, and it seemed sensible, so...)
+was the version I presented because the Nice People didn't have the relevent podule to connect a Macbook
+to the big screen in the tent. 
+
