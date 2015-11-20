@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: epic handwave | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/epic-handwave/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Tumbleweed]]></title>
+    <link href="http://failcake.github.com/blog/2015/11/20/tumbleweed/"/>
+    <updated>2015-11-20T20:45:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2015/11/20/tumbleweed</id>
+    <content type="html"><![CDATA[<p>... And then everbody left.</p>
+
+<p>I could write a thing about burnout, but I was too fried to notice when it happened. The interesting/exciting/disturbing
+thing about being properly stressed is that becomes entirely normal and you only realise something is broken when the
+music stops. Then all the things in your head that you've been ignoring pitch up at once and are like 'HELLO' and waving
+cartoon cricket-bats with nails and broken glass embedded.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Giving stuff away on the internet is probably a good thing.]]></title>
+    <link href="http://failcake.github.com/blog/2013/06/28/giving-stuff-away-on-the-internet-is-probably-a-good-thing/"/>
+    <updated>2013-06-28T16:51:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2013/06/28/giving-stuff-away-on-the-internet-is-probably-a-good-thing</id>
+    <content type="html"><![CDATA[<p>For reasons that will become sadly apparent when these posts are read in the wrong order, I've been engaged in the job of interviewing people who've expressed interest in the notion of coming to work for Future. At least one of those people was keen to point out that they'd been looking at our code on Github and was keen to come along and play with it.</p>
+
+<p>Which was nice.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Small parts isolated and deployed]]></title>
+    <link href="http://failcake.github.com/blog/2013/03/22/small-parts-isolated-and-deployed/"/>
+    <updated>2013-03-22T22:41:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/03/22/small-parts-isolated-and-deployed</id>
+    <content type="html"><![CDATA[<p>It seems that one of the things that people new to Puppet (and sometimes by extension, automated CD/CI rigs) try to do
+is brickhammer their existing deployment chains into the thing. You can go look at the mailing list and about once a
+week, someone will go 'I need Puppet to manage this thumping great source directory which we will distribute to
+$list-of-servers and then build in situ. How do I make Puppet do a <em>./configure &amp;&amp; make &amp;&amp; make install?'</em></p>
+
+<p>To which the answer is 'No.' and the answer to <em>that</em> is stropping because $reasons.</p>
+
+<p>If you or your organisation still want to do that sort of thing, my suggestion is that you bin the terrible Unix systems
+you're using and try one of the many free (or indeed expensive) versions that come with 1990s features like a
+package-management system. Mind, if you're using Gentoo for production systems then I can't help you. Please stop
+reading there is nothing for you here.</p>
+
+<p>Of course you can't package up everything you might wish to bung on a server from a distance. There are also going to be
+rules-lawyers hunting out corner cases in order to prove me wrong. Which, I don't know, seems to be the broken behaviour
+patterns of those who're somehow proud of keeping some ancient and spavined code-management technique alive into the
+C21st. Don't do that either, you're just making you own life hard. Or you're working for an organisation ditto and why
+are you doing that?</p>
+
+<p>Our own rules are entirely arbitrary and look like this:</p>
+
+<p>Rebuilt Debian packages and/or backports and/or wonky Ruby code that has a config file and an initscript are served as
+.debs from our own repo. Building your own Debian repository is desperately simple.</p>
+
+<p>Website code is managed through the magic of git, or the nearly-magic of svn. Not via puppet. The site furniture is
+instantiated via some puppet, but deploys happen via MCollective. Sinatra-based webapps also fit here, even though
+they're wonky Ruby code with config files and initscripts. We may fix this. Or not. Who can say?</p>
+
+<p>Tomcat apps are emitted from the end of a Jenkins-based chain and largely manage themselves. Getting Puppet involved
+just seems to confuse things.</p>
+
+<p>The new special case that prompted this ramble is a Java app that's going to sit on some edge servers. The last thing
+that happens in that Jenkins chain is that the app is packaged up as a .deb. Ok, a Java-style .deb, so the file-layout
+would make a Debian packager shit themselves with hatred, but still. Since our package generation has been mostly 'by
+hand' up until now, I'd never bothered with hacking up the auto-upload bits of reprepro. For the Jenkins stuff to work
+properly, I had to fix that. Thus when there's a new build of the Java app, it appears moments later (depending on
+cronjob) in our Debian repository.</p>
+
+<p>At that point, I thought it would be a good thing to have the repository-uploader send a message to the event-logger so
+we could see that there was a new version of code and something should probably be done about it. Not long after that, I
+realised that the 'something' might as well be automated, too. So actually, the repository-uploader will emit a message
+to a relevant topic on our message-bus, which will trigger an 'apt-get update' on the servers where that app is
+installed. If we're feeling brave and the Puppet code that manages the app has 'ensure => latest' in the package
+statement, then they'll go on and install that newly updated version.</p>
+
+<p>Which is kind of exactly the behaviour one would expect from a continuous deployment rig.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Finding places to put things]]></title>
+    <link href="http://failcake.github.com/blog/2012/12/28/finding-places-to-put-things/"/>
+    <updated>2012-12-28T23:31:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2012/12/28/finding-places-to-put-things</id>
+    <content type="html"><![CDATA[<p>I suspect this blog-thing will just contain sporadic apologies for lack of content for most of its lifetime.</p>
+
+<p>Anyway.</p>
+
+<p>This time the excuses have been brought to you by the words 'fail', 'power', 'generator', 'contactor', '250A supply',
+'melted' and the phrases 'boot that filer from a different Vol0', 'can you smell smoke?' and 'Oh hell not again'.</p>
+
+<p>As you might imagine, it's been busy and the DR plan has been tested and found interesting.</p>
+
+<p>We're still Barberising and Hiera-ing up our shonky collection of Puppet modules. I'd say that they're getting less
+shonky by the day, but it's taking longer than that. I hesitate to talk about 'patterns', because... Actually, I think
+that's an example of self-taught-hacker anti-intellectualism, which is an equal amount of rubbish as its opposite.</p>
+
+<p>So. The Barberis(ing|ed) pattern is a fine thing and, when used in combination with the wonder that is Hiera, allows us
+to do more things in simpler code.</p>
+
+<p>However. One of the modules that I'd been putting off refactoring (so 'patterns' are suspect but 'refactoring' is fine,
+eh?) was the one that manages our NSD install and thus the DNS for quite a number of domains, some of which contain
+rather popular websites.</p>
+
+<p><a href="http://www.nlnetlabs.nl/projects/nsd/">NSD is the authoritative-only nameserver daemon written by NLNet Labs</a>, who are a top bunch of chaps. We abandoned Bind
+after there were one too many vulnerability notices.</p>
+
+<p>I'd been putting off the work because the v0.1 module just drops the entirety of the zone-files directory under
+../files/ and lets Puppet do the work of synchronising the files across the nameservers. It's not as if it's a terrible
+thing to do at first glance - Puppet's file-serving means you can stop faffing with hand-brewed rsync scripts for
+managing the out-of-band DNS data, and if you've got your Puppet tree in a sensible SCM, you get version control 'for
+free'.</p>
+
+<p>However (again), great lumps of org-specific data like that shouldn't really, we are told, be held within the module
+tree. It's not necessarily obvious where the data should go, though. Nor is it terribly obvious how you connect it back
+to the Puppet module and have changes in the one signal the other to perform tasks.</p>
+
+<p>Well, it is if you look at the right corners of the Internet, but this thing is mostly me groping around and trying
+stuff out as a warning to others.</p>
+
+<p>NSD installation and management goes in the now-Barberised NSD module.</p>
+
+<p>This also deposits code that rebuilds the NSD config file when a domain is added or removed. And indeed the out-of-band
+master list of domains, which semi-obviously has to travel separately from the zonefiles for $reasons.</p>
+
+<p>(It's about this time that someone-who-is-not-me would be going 'Why isn't all this domain gubbins in a nice database
+somewhere, then all zone maintenance would be a simple 'SELECT mumble FROM yinglebart WHERE tewkesbury ISNT something'',
+which would be very shortly before I hauled out the sarcasm throwing machine.)</p>
+
+<p>The zonefiles live in a git repo of their own. That repo is cloned down onto the master DNS server(s) and kept current via the
+magic of post-commit hooks. Meanwhile, there's a file resource in the NSD module which looks like this:</p>
+
+<pre><code>file { '/var/lib/nsd3/.git/HEAD':
+  audit   =&gt; content,
+  notify  =&gt; Exec['rebuild'],
+}
+
+exec { 'rebuild':
+  command     =&gt; '/etc/nsd3/code/refresh.sh',
+  refreshonly =&gt; true,
+}
+</code></pre>
+
+<p>... Which is lifted wholesale from
+<a href="https://github.com/jordansissel/puppet-examples/tree/master/unmanaged-file-notify">here.</a> Either we've found one of the non-terrible use cases for this hack, or I'll be
+writing another rambling post in a few months when I've had a better idea.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Leveraged neatness is not always your friend]]></title>
+    <link href="http://failcake.github.com/blog/2012/09/11/leveraged-ocd-is-not-always-your-friend/"/>
+    <updated>2012-09-11T15:19:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/09/11/leveraged-ocd-is-not-always-your-friend</id>
+    <content type="html"><![CDATA[<p>I must begin by apologising for using the word 'leveraged'. It's terrible
+ marketing-speak. However, it mostly fits in context and anyway I am using
+ it in an ironic sense. (not that that's even a valid excuse for the likes
+ of me, but there you go.)</p>
+
+<p>There are certain aspects of the admin trades where semi-obsessive neatness
+and/or attention to detail are useful things to have. It's one of the times
+where not being able to leave the house without checking that you've turned the
+gas off twice and locked the front door three times can be a positive thing to
+admit in an interview. [NB: Self-deprecating hyperbole.]</p>
+
+<p>It can also lead to the sort of unfortunate failure-modes that if you're lucky
+you're not familiar with.</p>
+
+<p>(This was all kicked off by one of the network guys asking me some hard
+questions about the nature of packaging and dependencies, which set me off on a
+bit of a ramble. Thus network types get it first. Beard-fondling admins get
+their kicking later.)</p>
+
+<!-- more -->
+
+
+<p>Twice now, I've been in jobs where the greater part of the network has been
+rebuilt. If you imagine <em>everything</em> being lifted up while new wires are
+plumbed in by a selection of blokes with disturbing arsecracks, then you'd not
+be far wrong. Towards the end of the work, the relevant network manager has
+(metaphorically) straightened up, dusted off their hands and declared the task
+complete. And then the terrible oiks in charge of the servers have started
+migrating services to the shiny new bits of wire, to discover that only about a
+third of the routes are in place and next to none of the odd ports required to
+make the databases work or sodding undocumented OSX distributed p/w malarkey.
+Thus there's a sudden pile of change-requests (or an aggrieved queue next to
+the network manager's cube) followed by quite a lot of grousing about 'making
+my nice clean network diagram all complicated with your filthy packets and
+honestly why are you people even <em>using</em> Oracle?'</p>
+
+<p>Which, um, yes.</p>
+
+<p>Meanwhile, there used to be one of those Rules of Thumb that became
+over-generalised by people who were massively missing the point on purpose. It
+went along the lines of 'the process-list on your unix box should only be about
+a screen long, and if you don't <em>know</em> what the various jobs are doing and
+which ports they're using, disable them.</p>
+
+<p>That's actually sensible behaviour if you're talking about some hateful SysV
+box that's acting as a firewall or bastion host back in the old days when
+Solaris was a relevant OS (Pre Y2K) and everything came with inetd enabled with
+the tiresome daemons that no-one understood. (ticotsord? Daft name for anything
+that's not a planet in a space-trading MMO.)</p>
+
+<p>However, it's only going to make everyone else hate you if you drag that
+attitude along into the world of Linux distros and try to out-stubborn the
+package-manager. Don't do that. I know that sinking feeling when I see the
+resulting trail of gubbins that gets hauled in like tin cans on string
+following the bride &amp; groom's car in a Carry-on film when I type 'apt-get
+install default-jre', and I have learned to let it go.</p>
+
+<p>Not letting that sort of thing go ends in something like 'And that, your
+honour, is when I decided to create my own Linux distribution...'</p>
+
+<p>It happens in tool-building, too. One of the things I half-promised myself was
+that the stomp-git daemon would never do anything careless with the
+repositories. All it would do is a 'git fetch' and anything further would be
+under the control of a carbon-unit. That was a splendid plan until I discovered
+that actually I needed the thing to keep a Puppetmaster tree in sync behind a
+firewall. Well, ok. That's a special mode which requires a specific
+command-line option which is well documented in the config file and the
+initscript.</p>
+
+<p>Then I needed to keep a hieradata tree in sync across two puppetmasters, and an
+(this!) Octopress install working, and it turned out that some rearranging of
+the config file made the code less worse and the ease of doing dangerous thing
+more better.</p>
+
+<p>I'm not sure how I feel about that. It's made several things really quite
+trivial, but it really doesn't sit well with me.</p>
+
+<p>Funny business, code.</p>
+]]></content>
+  </entry>
+  
+</feed>

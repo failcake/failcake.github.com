@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Cornelius Snarlington - business deer | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/cornelius-snarlington-business-deer/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Giving stuff away on the internet is probably a good thing.]]></title>
+    <link href="http://failcake.github.com/blog/2013/06/28/giving-stuff-away-on-the-internet-is-probably-a-good-thing/"/>
+    <updated>2013-06-28T16:51:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2013/06/28/giving-stuff-away-on-the-internet-is-probably-a-good-thing</id>
+    <content type="html"><![CDATA[<p>For reasons that will become sadly apparent when these posts are read in the wrong order, I've been engaged in the job of interviewing people who've expressed interest in the notion of coming to work for Future. At least one of those people was keen to point out that they'd been looking at our code on Github and was keen to come along and play with it.</p>
+
+<p>Which was nice.</p>
+]]></content>
+  </entry>
+  
+</feed>

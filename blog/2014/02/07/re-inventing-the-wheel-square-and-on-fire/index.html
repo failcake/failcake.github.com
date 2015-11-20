@@ -1,0 +1,323 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>re-inventing the wheel - square and on fire - Devops malarkey</title>
+  <meta name="author" content="Bodge and Guesswork">
+
+  
+  <meta name="description" content="I am incompetent and I can&#8217;t make Vagrant work. At least, that&#8217;s the excuse I&#8217;ve been making for not joining in with the
+rest of &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Devops malarkey" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Devops malarkey</a></h1>
+  
+    <h2>Success. Failure. Cake.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:failcake.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Re-inventing the Wheel - Square and on Fire</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-07T20:27:00+00:00" pubdate data-updated="true">Feb 7<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>I am incompetent and I can&#8217;t make Vagrant work.</p>
+
+<p>At least, that&#8217;s the excuse I&#8217;ve been making for not joining in with the
+rest of the floor in using that for Puppet (among other things) development. Instead, my dev-rig is a VM running as a
+puppetmaster that&#8217;s tracking the changes I make to a given branch in our Git repo via the magic of post-commit hooks and
+another VM in which I can run &#8216;puppet agent &#8211;debug &#8211;blah &#8211;server (first VM)&#8217;. Once in a while I remember to blow away
+the second VM so I can make sure everything builds in the right order. However, even with snapshots it&#8217;s just slightly
+too painful to happen regularly.</p>
+
+<p>Meanwhile, quite a lot of the recent developments at Future have involved rigs of between eight and twelve boxes.
+Generating a worthwhile test/dev version of one of those is rather tiresome because even if you&#8217;ve got the spare
+horsepower lying about, you have to spend yea-long wiring it all together, sanitising the static and/or test data and
+it all quickly gets completely <em>oh god why did i even get out of bed i should have been a farmer like my dad mind you if
+i had done that i&#8217;d have been out of bed at six to go feed the sheep on long barrow bank perhaps not after all&#8230;</em></p>
+
+<p>So when a mildly broken Dell R620 arrived back from one of the DCs coincidentally with me wanting to have a play with
+this Docker business, it all seemed a bit convenient.</p>
+
+<p>I am incompetent and I can&#8217;t make Docker work. On Debian.</p>
+
+<p><a href="http://linuxcontainers.org/">LXC</a>, on the other hand, was slightly simpler than falling off a log.</p>
+
+<p>Given that it&#8217;s simple to build a puppetmaster that&#8217;s the same as one of the live ones, and that all the machine config
+I currently care about is in a manifest, it should be pretty easy to generate a container and have it puppet itself up
+tolerably quickly.</p>
+
+<p>This indeed turned out to be the case. However, having to hand-allocate IP addresses and fiddle about with container
+naming such that they picked up the configs in use on the live rig was all a bit too hands-on and really not what I
+wanted.</p>
+
+<p><a href="http://www.thekelleys.org.uk/dnsmasq/doc.html">DNSMasq</a> fixed the first problem. It is a surprisingly useful tool.</p>
+
+<p>A rakefile which read a list of made-up machine names, generated softlinks to the actual hiera node configs and then
+instantiated the relevant containers fixed the second.</p>
+
+<p>I also spent <em>quite some time</em> building a Wheezy &#8216;image&#8217; that minimised apt-get as much as possible.</p>
+
+<p>Result - fully puppeted containers come up in circa a minute. Somewhat longer if you have to install PHP.
+If I didn&#8217;t have quite such a rational hatred of golden images and all who sail in them, it would likely be faster
+still.</p>
+
+<p>The next part is a bit fiddly.</p>
+
+<p>The example problem I now have is that some parts of my collection of yea-many VMs want to connect to other parts. For
+instance if I have a redis slave, I need to know what the master&#8217;s IP address might be during the puppet run. At Future,
+we generate a location fact and use that in our hiera, er, hierarchy to configure things like message brokers,
+smarthosts and DNS ordering. I could just add yet another location - testbox, or something - allocate a block of IP
+space and then add some extra indirection. And then I could do that again for each person and/or project that wanted to
+run up a test-rig. At which point one has just run into a behaviour pattern that should probably be named &#8216;It&#8217;s OK, I
+can fix that for you.&#8217;</p>
+
+<p>I first came across this in, er, 1991 when doing some NHS-related coding. One of the other chaps had written a thing
+which had to deal with, oh I don&#8217;t know, ten items or something. Because he was a forward-thinking sort, he allocated
+sixteen slots in his array and beetled off all smug for a coffee and a corned beef sandwich. As you might expect, a few
+months later one site or other had a list of seventeen items and a bug report. &#8216;It&#8217;s OK, I can fix that for you!&#8217; went
+our chap and expanded the array to the clearly ludicrous value of some twenty-three slots&#8230;</p>
+
+<p>There&#8217;s scope for an Eric Berne knockoff book of tiresome technical behaviour antipatterns, isn&#8217;t there?</p>
+
+<p>Anyway, I&#8217;m using DHCP, and I wanted the entire edifice to work with little or no extra typing.</p>
+
+<p>CoreOS&#8217;s <a href="https://github.com/coreos/etcd">ETCD</a> looked like a good fit. Emit salient facts to etcd database when bringing up (say) redis master, then
+query same via <a href="https://github.com/garethr/hiera-etcd">Garethr&#8217;s hiera-etcd</a> when bringing up the slave. Profit!</p>
+
+<p>That bit did take a little tinkering to get right.</p>
+
+<p>It seems to me that the notion of a reactive puppet configuration is really rather interesting. Other people may well be
+screaming in terror and jabbering about things like &#8216;deadly embrace&#8217; and &#8216;terrible feedback loops are fine for the Jesus
+and Mary Chain (Or A Place to Bury Strangers if that&#8217;s too retro for you) but have no place in a theoretically stable
+configuration.&#8217; However, just as a top-down decision process enforced by rigid hierarchy is a hateful idea for a
+workplace environment, so it is for a machine environment.</p>
+
+<p>TL;DR - code in <a href="https://github.com/FuturePublishing/model-village">Github</a>, patches welcome.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">JHR</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-07T20:27:00+00:00" pubdate data-updated="true">Feb 7<span>th</span>, 2014</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/old-people-are-tiresome/'>old people are tiresome</a>, <a class='category' href='/blog/categories/post-hack-rationalisation/'>post-hack rationalisation</a>, <a class='category' href='/blog/categories/proving-a-point-for-spite/'>proving a point for spite</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/" data-via="" data-counturl="http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/" title="Previous Post: Treating people like dicks (distance learning edition)">&laquo; Treating people like dicks (distance learning edition)</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2015/11/20/tumbleweed/" title="Next Post: Tumbleweed">Tumbleweed &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/11/20/tumbleweed/">Tumbleweed</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/">re-inventing the wheel - square and on fire</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/">Treating people like dicks (distance learning edition)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/28/short-commercial-break/">Short commercial break</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/">There are two hard problems in computer science: caching</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/failcake">@failcake</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'failcake',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bodge and Guesswork -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

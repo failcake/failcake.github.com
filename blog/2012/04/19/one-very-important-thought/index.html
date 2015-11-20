@@ -1,0 +1,418 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>One very important thought - Devops malarkey</title>
+  <meta name="author" content="Bodge and Guesswork">
+
+  
+  <meta name="description" content="I have been hacking on stomp-git over the past couple of days. Mostly because there may or may not be a lurking nasty with the way it sometimes stops &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://failcake.github.com/blog/2012/04/19/one-very-important-thought">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Devops malarkey" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Devops malarkey</a></h1>
+  
+    <h2>Success. Failure. Cake.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:failcake.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">One Very Important Thought</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-19T12:24:00+01:00" pubdate data-updated="true">Apr 19<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>I have been hacking on stomp-git over the past couple of days. Mostly because there may or may not be a lurking nasty with the way it sometimes stops listening on its, er listen topic, but
+also because it has needed a deal of de-Futuring and general fettling so it doesn&#8217;t make proper coders claw their own faces off in horror.</p>
+
+<p>And because I had forgotten how I&#8217;d made it work when it came to the svn->git rollout of one of our major sites.</p>
+
+<p>Thus it seems as good a time as any to explain how I think it should work and indeed why it works like that.</p>
+
+<!-- more -->
+
+
+<p>The elevator pitch (of sorts) is that if you&#8217;ve got a message-bus that connects all your servers together&#8230;</p>
+
+<p>Actually there wasn&#8217;t an elevator pitch. I think it was a combination of wondering about how one might make deploys faster (and thus less painful),
+implementing <a href="http://hunnur.com/blog/2010/10/dynamic-git-branch-puppet-environments/">Hunter Haugen&#8217;s dynamic git-branching for puppet</a> and making the AMQ rig more reliable because we&#8217;d sold one of the dev teams on the idea of using it for inter-server comms.</p>
+
+<p>What the stomp-git daemon does is subscribe to a topic, in our case named &#8216;future.git.commits&#8217; and if it spots a commit message for a repository it cares about, issues a &#8216;git fetch&#8217; command in order
+to update its local copy of that repo. Thus when it comes time to deploy a site, the relevant tag or branch is already lurking in the git tree and the actual &#8216;git checkout epic-bugfix-4.77&#8217; happens tolerably quickly.</p>
+
+<p>This does involve a selection of scripts and daemons flying in close formation, so I shall attempt to describe the flow of events.</p>
+
+<p>An assumption I made is that there&#8217;s something like gitolite where most of your repositories live and it&#8217;s been configured to emit post-commit messages.</p>
+
+<p>If you&#8217;re using GitHub, they have post-commit hooks that&#8217;ll talk to all sorts of things, and their example Sinatra code is trivially hackable. I&#8217;ll cover that in a later post.</p>
+
+<p>A commit message looks a lot like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[spog] refs/heads/master aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>repo: spog
+</span><span class='line'>oldrev: dc01649eee870d1a9f051f046165890c4c5e197d
+</span><span class='line'>newrev: aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>refname: refs/heads/master
+</span><span class='line'> commit aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>Author: John Hawkes-Reed &lt;john.hawkes-reed@futurenet.com>
+</span><span class='line'>Date:   Wed Mar 14 11:55:15 2012 +0000
+</span><span class='line'>
+</span><span class='line'>    bonkle
+</span><span class='line'>
+</span><span class='line'>diff --git a/bonkle b/bonkle
+</span><span class='line'>index 1169e1c..48ee005 100644
+</span><span class='line'>--- a/bonkle
+</span><span class='line'>+++ b/bonkle
+</span><span class='line'>@@ -26,3 +26,4 @@ bonkle
+</span><span class='line'> bonkle
+</span><span class='line'> bonkle
+</span><span class='line'> bonkle
+</span><span class='line'>+bonkle</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&#8230; And if that looks an awful lot like the output from the example post-commit mail, that&#8217;s because I cribbed it wholesale.</p>
+
+<p>The only section that the stomp-git daemon is looking for is the &#8216;repo: spog&#8217; line. The rest is syntactic sugar on the off-chance that someone wants to subscribe to that topic and (say) pass the output to an IRC channel.</p>
+
+<p>Here&#8217;s the YAML config for the stomp-git daemon:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>---
+</span><span class='line'># Corp
+</span><span class='line'>#rserver: failover://(stomp://gituser:gitpass@amq1.domain.com:61613,stomp://gituser:gitpass@amq2.domain.com:61613)
+</span><span class='line'># Co-lo
+</span><span class='line'>rserver: failover://(stomp://othergituser:othergitpass@amq3.otherdomain.net:61613,stomp://othergituser:othergitpass@amq4.otherdomain.net:61613)
+</span><span class='line'>#
+</span><span class='line'># Topics:
+</span><span class='line'>listen-topic: future.git.commits
+</span><span class='line'>report-topic: future.events.stomp-git
+</span><span class='line'>#
+</span><span class='line'># All repo modes badly explained:
+</span><span class='line'># normal: - fetch $repo.
+</span><span class='line'># trusting - fetch $repo, checkout origin/master to $target.
+</span><span class='line'># dangerous - fetch $repo, checkout origin/master.
+</span><span class='line'># puppetmaster - fetch $repo, checkout to $target/$branch. As above.
+</span><span class='line'>#
+</span><span class='line'># Repos below here
+</span><span class='line'>#
+</span><span class='line'>repo-list:
+</span><span class='line'>
+</span><span class='line'>#  example-repo:
+</span><span class='line'>#    user: rubyapps
+</span><span class='line'>#    repo: /data/repos/example
+</span><span class='line'>#    mode: normal
+</span><span class='line'>#
+</span><span class='line'>#  spog:
+</span><span class='line'>#    user: www-data
+</span><span class='line'>#    repo: /data/repos/octopress-site
+</span><span class='line'>#    target: /data/sites/www.my-octopress.co.uk
+</span><span class='line'>#    mode: trusting
+</span><span class='line'>#
+</span><span class='line'>#  puppet-hieradata:
+</span><span class='line'>#    user: puppet
+</span><span class='line'>#    repo: /etc/puppet/hieradata
+</span><span class='line'>#    mode: dangerous
+</span><span class='line'>#
+</span><span class='line'>#  puppet-environments:
+</span><span class='line'>#    user: puppet
+</span><span class='line'>#    repo: /etc/puppet/puppet-environments
+</span><span class='line'>#    target: /etc/puppet/environments
+</span><span class='line'>#    mode: puppetmaster</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&#8230; Where &#8216;rserver&#8217; is a connection URL you can feed to the Ruby stomp library, listen- and report- topics should be moderately self-evident and the interesting bit is at the bottom - the repository names and locations on the target machine. So that turns into &#8216;cd repodir &amp;&amp; git fetch&#8217;. Sorted.</p>
+
+<p><em>Puppetmaster specials?</em></p>
+
+<p>The dynamic git-branch stuff above does its stuff with ssh pubkeys and a post-commit shellscript. This works fine for our one puppetmaster that&#8217;s on the same VLAN as our gitolite box. However, our other puppetmaster is on the inside of the corporate firewall where inbound connections are <em>verboten.</em> Like don&#8217;t even ask because a chorus of derision from the rest of the ops team can sometimes offend the sorts of people who become wedded to single ways of doing things.</p>
+
+<p>However, the AMQ rig is Allowed, so the stomp-git daemon has a puppetmaster mode. (Which would probably be better being split off into a different program, but I wrote it in a temper and and&#8230;)</p>
+
+<p>In puppetmaster mode, the daemon will also checkout the update it has just fetched. You really don&#8217;t want want this sort of behaviour under most circumstances.</p>
+
+<p>Referencing the above config, &#8216;puppet-environments&#8217; is the location of the cloned copy of your puppetmaster tree and &#8216;environments&#8217; is the checked-out version that features in the linked description of dynamic branching even further above.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">JHR</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-19T12:24:00+01:00" pubdate data-updated="true">Apr 19<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/boards-of-canada/'>Boards of Canada</a>, <a class='category' href='/blog/categories/post-hack-rationalisation/'>post-hack rationalisation</a>, <a class='category' href='/blog/categories/terrible-excuses-for-ruby/'>terrible excuses for Ruby</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://failcake.github.com/blog/2012/04/19/one-very-important-thought/" data-via="" data-counturl="http://failcake.github.com/blog/2012/04/19/one-very-important-thought/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/04/01/java-based-diversionary-tactics/" title="Previous Post: Java-based diversionary tactics">&laquo; Java-based diversionary tactics</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/04/19/a-hazelnut-in-every-bite/" title="Next Post: A hazelnut in every bite">A hazelnut in every bite &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/11/20/tumbleweed/">Tumbleweed</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/">re-inventing the wheel - square and on fire</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/">Treating people like dicks (distance learning edition)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/28/short-commercial-break/">Short commercial break</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/">There are two hard problems in computer science: caching</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/failcake">@failcake</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'failcake',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bodge and Guesswork -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

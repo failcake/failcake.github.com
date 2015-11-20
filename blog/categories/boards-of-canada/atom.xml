@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Boards of Canada | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/boards-of-canada/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[One very important thought]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/19/one-very-important-thought/"/>
+    <updated>2012-04-19T12:24:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/19/one-very-important-thought</id>
+    <content type="html"><![CDATA[<p>I have been hacking on stomp-git over the past couple of days. Mostly because there may or may not be a lurking nasty with the way it sometimes stops listening on its, er listen topic, but
+also because it has needed a deal of de-Futuring and general fettling so it doesn't make proper coders claw their own faces off in horror.</p>
+
+<p>And because I had forgotten how I'd made it work when it came to the svn->git rollout of one of our major sites.</p>
+
+<p>Thus it seems as good a time as any to explain how I think it should work and indeed why it works like that.</p>
+
+<!-- more -->
+
+
+<p>The elevator pitch (of sorts) is that if you've got a message-bus that connects all your servers together...</p>
+
+<p>Actually there wasn't an elevator pitch. I think it was a combination of wondering about how one might make deploys faster (and thus less painful),
+implementing <a href="http://hunnur.com/blog/2010/10/dynamic-git-branch-puppet-environments/">Hunter Haugen's dynamic git-branching for puppet</a> and making the AMQ rig more reliable because we'd sold one of the dev teams on the idea of using it for inter-server comms.</p>
+
+<p>What the stomp-git daemon does is subscribe to a topic, in our case named 'future.git.commits' and if it spots a commit message for a repository it cares about, issues a 'git fetch' command in order
+to update its local copy of that repo. Thus when it comes time to deploy a site, the relevant tag or branch is already lurking in the git tree and the actual 'git checkout epic-bugfix-4.77' happens tolerably quickly.</p>
+
+<p>This does involve a selection of scripts and daemons flying in close formation, so I shall attempt to describe the flow of events.</p>
+
+<p>An assumption I made is that there's something like gitolite where most of your repositories live and it's been configured to emit post-commit messages.</p>
+
+<p>If you're using GitHub, they have post-commit hooks that'll talk to all sorts of things, and their example Sinatra code is trivially hackable. I'll cover that in a later post.</p>
+
+<p>A commit message looks a lot like this:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[spog] refs/heads/master aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>repo: spog
+</span><span class='line'>oldrev: dc01649eee870d1a9f051f046165890c4c5e197d
+</span><span class='line'>newrev: aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>refname: refs/heads/master
+</span><span class='line'> commit aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>Author: John Hawkes-Reed &lt;a href="&#109;&#97;&#105;&#x6c;&#116;&#x6f;&#x3a;&#106;&#x6f;&#104;&#110;&#46;&#x68;&#97;&#x77;&#x6b;&#101;&#115;&#45;&#114;&#101;&#101;&#x64;&#x40;&#102;&#x75;&#x74;&#117;&#x72;&#101;&#x6e;&#x65;&#116;&#x2e;&#x63;&#111;&#x6d;">&#106;&#x6f;&#104;&#110;&#x2e;&#104;&#x61;&#x77;&#x6b;&#x65;&#115;&#x2d;&#x72;&#101;&#101;&#x64;&#x40;&#x66;&#x75;&#x74;&#117;&#114;&#101;&#x6e;&#x65;&#x74;&#x2e;&#99;&#111;&#109;&lt;/a>
+</span><span class='line'>Date:   Wed Mar 14 11:55:15 2012 +0000&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>bonkle
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p>diff --git a/bonkle b/bonkle
+</span><span class='line'>index 1169e1c..48ee005 100644
+</span><span class='line'>--- a/bonkle
+</span><span class='line'>+++ b/bonkle
+</span><span class='line'>@@ -26,3 +26,4 @@ bonkle
+</span><span class='line'> bonkle
+</span><span class='line'> bonkle
+</span><span class='line'> bonkle
+</span><span class='line'>+bonkle&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>... And if that looks an awful lot like the output from the example post-commit mail, that's because I cribbed it wholesale.</p>
+
+<p>The only section that the stomp-git daemon is looking for is the 'repo: spog' line. The rest is syntactic sugar on the off-chance that someone wants to subscribe to that topic and (say) pass the output to an IRC channel.</p>
+
+<p>Here's the YAML config for the stomp-git daemon:</p>
+
+<h2><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/h2>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>Corp&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>rserver: failover://(stomp://gituser:gitpass@amq1.domain.com:61613,stomp://gituser:gitpass@amq2.domain.com:61613)&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>Co-lo&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>rserver: failover://(stomp://othergituser:othergitpass@amq3.otherdomain.net:61613,stomp://othergituser:othergitpass@amq4.otherdomain.net:61613)
+</span><span class='line'>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>Topics:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>listen-topic: future.git.commits
+</span><span class='line'>report-topic: future.events.stomp-git
+</span><span class='line'>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>All repo modes badly explained:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>normal: - fetch $repo.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>trusting - fetch $repo, checkout origin/master to $target.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>dangerous - fetch $repo, checkout origin/master.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>puppetmaster - fetch $repo, checkout to $target/$branch. As above.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>Repos below here&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#
+</span><span class='line'>repo-list:&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>example-repo:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>user: rubyapps&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>repo: /data/repos/example&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>mode: normal&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>spog:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>user: www-data&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>repo: /data/repos/octopress-site&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>target: /data/sites/www.my-octopress.co.uk&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>mode: trusting&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>puppet-hieradata:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>user: puppet&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>repo: /etc/puppet/hieradata&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>mode: dangerous&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>puppet-environments:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>user: puppet&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>repo: /etc/puppet/puppet-environments&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>target: /etc/puppet/environments&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>mode: puppetmaster&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>... Where 'rserver' is a connection URL you can feed to the Ruby stomp library, listen- and report- topics should be moderately self-evident and the interesting bit is at the bottom - the repository names and locations on the target machine. So that turns into 'cd repodir &amp;&amp; git fetch'. Sorted.</p>
+
+<p><em>Puppetmaster specials?</em></p>
+
+<p>The dynamic git-branch stuff above does its stuff with ssh pubkeys and a post-commit shellscript. This works fine for our one puppetmaster that's on the same VLAN as our gitolite box. However, our other puppetmaster is on the inside of the corporate firewall where inbound connections are <em>verboten.</em> Like don't even ask because a chorus of derision from the rest of the ops team can sometimes offend the sorts of people who become wedded to single ways of doing things.</p>
+
+<p>However, the AMQ rig is Allowed, so the stomp-git daemon has a puppetmaster mode. (Which would probably be better being split off into a different program, but I wrote it in a temper and and...)</p>
+
+<p>In puppetmaster mode, the daemon will also checkout the update it has just fetched. You really don't want want this sort of behaviour under most circumstances.</p>
+
+<p>Referencing the above config, 'puppet-environments' is the location of the cloned copy of your puppetmaster tree and 'environments' is the checked-out version that features in the linked description of dynamic branching even further above.</p>
+]]></content>
+  </entry>
+  
+</feed>

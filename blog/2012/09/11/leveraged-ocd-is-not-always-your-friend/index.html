@@ -1,0 +1,327 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Leveraged neatness is not always your friend - Devops malarkey</title>
+  <meta name="author" content="Bodge and Guesswork">
+
+  
+  <meta name="description" content="I must begin by apologising for using the word &#8216;leveraged&#8217;. It&#8217;s terrible marketing-speak. However, it mostly fits in context and &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://failcake.github.com/blog/2012/09/11/leveraged-ocd-is-not-always-your-friend">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Devops malarkey" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Devops malarkey</a></h1>
+  
+    <h2>Success. Failure. Cake.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:failcake.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Leveraged Neatness Is Not Always Your Friend</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-11T15:19:00+01:00" pubdate data-updated="true">Sep 11<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>I must begin by apologising for using the word &#8216;leveraged&#8217;. It&#8217;s terrible
+ marketing-speak. However, it mostly fits in context and anyway I am using
+ it in an ironic sense. (not that that&#8217;s even a valid excuse for the likes
+ of me, but there you go.)</p>
+
+<p>There are certain aspects of the admin trades where semi-obsessive neatness
+and/or attention to detail are useful things to have. It&#8217;s one of the times
+where not being able to leave the house without checking that you&#8217;ve turned the
+gas off twice and locked the front door three times can be a positive thing to
+admit in an interview. [NB: Self-deprecating hyperbole.]</p>
+
+<p>It can also lead to the sort of unfortunate failure-modes that if you&#8217;re lucky
+you&#8217;re not familiar with.</p>
+
+<p>(This was all kicked off by one of the network guys asking me some hard
+questions about the nature of packaging and dependencies, which set me off on a
+bit of a ramble. Thus network types get it first. Beard-fondling admins get
+their kicking later.)</p>
+
+<!-- more -->
+
+
+<p>Twice now, I&#8217;ve been in jobs where the greater part of the network has been
+rebuilt. If you imagine <em>everything</em> being lifted up while new wires are
+plumbed in by a selection of blokes with disturbing arsecracks, then you&#8217;d not
+be far wrong. Towards the end of the work, the relevant network manager has
+(metaphorically) straightened up, dusted off their hands and declared the task
+complete. And then the terrible oiks in charge of the servers have started
+migrating services to the shiny new bits of wire, to discover that only about a
+third of the routes are in place and next to none of the odd ports required to
+make the databases work or sodding undocumented OSX distributed p/w malarkey.
+Thus there&#8217;s a sudden pile of change-requests (or an aggrieved queue next to
+the network manager&#8217;s cube) followed by quite a lot of grousing about &#8216;making
+my nice clean network diagram all complicated with your filthy packets and
+honestly why are you people even <em>using</em> Oracle?&#8217;</p>
+
+<p>Which, um, yes.</p>
+
+<p>Meanwhile, there used to be one of those Rules of Thumb that became
+over-generalised by people who were massively missing the point on purpose. It
+went along the lines of &#8216;the process-list on your unix box should only be about
+a screen long, and if you don&#8217;t <em>know</em> what the various jobs are doing and
+which ports they&#8217;re using, disable them.</p>
+
+<p>That&#8217;s actually sensible behaviour if you&#8217;re talking about some hateful SysV
+box that&#8217;s acting as a firewall or bastion host back in the old days when
+Solaris was a relevant OS (Pre Y2K) and everything came with inetd enabled with
+the tiresome daemons that no-one understood. (ticotsord? Daft name for anything
+that&#8217;s not a planet in a space-trading MMO.)</p>
+
+<p>However, it&#8217;s only going to make everyone else hate you if you drag that
+attitude along into the world of Linux distros and try to out-stubborn the
+package-manager. Don&#8217;t do that. I know that sinking feeling when I see the
+resulting trail of gubbins that gets hauled in like tin cans on string
+following the bride &amp; groom&#8217;s car in a Carry-on film when I type &#8216;apt-get
+install default-jre&#8217;, and I have learned to let it go.</p>
+
+<p>Not letting that sort of thing go ends in something like &#8216;And that, your
+honour, is when I decided to create my own Linux distribution&#8230;&#8217;</p>
+
+<p>It happens in tool-building, too. One of the things I half-promised myself was
+that the stomp-git daemon would never do anything careless with the
+repositories. All it would do is a &#8216;git fetch&#8217; and anything further would be
+under the control of a carbon-unit. That was a splendid plan until I discovered
+that actually I needed the thing to keep a Puppetmaster tree in sync behind a
+firewall. Well, ok. That&#8217;s a special mode which requires a specific
+command-line option which is well documented in the config file and the
+initscript.</p>
+
+<p>Then I needed to keep a hieradata tree in sync across two puppetmasters, and an
+(this!) Octopress install working, and it turned out that some rearranging of
+the config file made the code less worse and the ease of doing dangerous thing
+more better.</p>
+
+<p>I&#8217;m not sure how I feel about that. It&#8217;s made several things really quite
+trivial, but it really doesn&#8217;t sit well with me.</p>
+
+<p>Funny business, code.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">JHR</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-09-11T15:19:00+01:00" pubdate data-updated="true">Sep 11<span>th</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/avoiding-work-by-making-lists/'>avoiding work by making lists</a>, <a class='category' href='/blog/categories/difficult-second-version/'>difficult second version</a>, <a class='category' href='/blog/categories/epic-handwave/'>epic handwave</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://failcake.github.com/blog/2012/09/11/leveraged-ocd-is-not-always-your-friend/" data-via="" data-counturl="http://failcake.github.com/blog/2012/09/11/leveraged-ocd-is-not-always-your-friend/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/09/05/emfcamp/" title="Previous Post: EMFcamp">&laquo; EMFcamp</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/10/23/actually-just-testing-something-else/" title="Next Post: Actually just testing something else">Actually just testing something else &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/11/20/tumbleweed/">Tumbleweed</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/">re-inventing the wheel - square and on fire</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/">Treating people like dicks (distance learning edition)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/28/short-commercial-break/">Short commercial break</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/">There are two hard problems in computer science: caching</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/failcake">@failcake</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'failcake',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bodge and Guesswork -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

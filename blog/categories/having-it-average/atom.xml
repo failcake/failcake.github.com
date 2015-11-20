@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: having it average | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/having-it-average/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[I had that Janov bloke in the back of my cab once]]></title>
+    <link href="http://failcake.github.com/blog/2013/02/24/i-had-that-janov-bloke-in-the-back-of-my-cab-once/"/>
+    <updated>2013-02-24T15:47:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/02/24/i-had-that-janov-bloke-in-the-back-of-my-cab-once</id>
+    <content type="html"><![CDATA[<p>Here's a non-technical thing that's been wandering round my head: brogrammers are more or less exactly what you can
+expect in an environment run by old-school Unix admins. Or rather, they emerged as a species in reaction to an
+environment which itself was a reaction.</p>
+
+<p>I guess I'd better unpack that and provide some material so people can go TL;DR.</p>
+
+<h4>Brogrammers.</h4>
+
+<p>So (i). Brogrammer. You can go look that up on the internet, because that's what sensible people do. If they come across
+a term or statement they're not sure about, they can poke about the internet for a bit, gather information from several
+sources and perhaps come to a useful conclusion. It's not, y'know, <em>required</em>, but it's nice when it happens and makes
+them look much less like dicks than the sort of people who'll just stand there going 'No! <em>Tell</em> me what you mean!'</p>
+
+<p>I would also ask you to go read this: <a href="http://blog.prettylittlestatemachine.com/blog/2013/02/20/what-your-culture-really-says">what your culture really says</a>, because it crystallised (or
+began the process of precipitation or whatever) a lot of what this ramble may or may not be about. I have no particular
+axe to grind with that piece because I am a white English bloke  in my mid forties, and if I've been a participant in
+any of the scenarios listed I've not had the wit to realise it. It rings true, though. True enough that I suspect the
+'if' in that preceding sentence is a 'when'.</p>
+
+<!-- more -->
+
+
+<p>So (ii). Old-school unix admin. There are a set of people out there who have failed to realise that the stories about
+the 'Bastard operater from hell' are <em>parody,</em>  and that the Dilbert comics are a stark and existentialist warning from
+a parallel universe where everything is terrible. More or less exactly like this one, in fact. Worse, there are a
+younger set of people who've found the Usenet groups where the alleged greybeards let off steam by making up stories,
+decided they want to be Unix Admins, but have cargo-culted precisely the wrong set of attributes in order for that to
+happen. More or less like bad Chaos Magick through a wonky mirror.</p>
+
+<h4>Dickheads.</h4>
+
+<p>The end result of this is that you end up with a class of people who cultivate a surly attitude and firmly hold on to
+the idea that they are the only ones in the business who know how to do anything computer-related correctly, and
+because of that no-one should be allowed to fiddle with the servers (or the routers, as we have seen before) because
+through the magic of circular logic they'll do something stupid and this is why we can't have nice things. However,
+since one or other part of the business seems to make money via the act of repeatedly changing the things that are on
+the servers, they will huffily and with much tutting allow carefully vetted changes to be made.</p>
+
+<p>This is not to say that vetting changes is a <em>bad thing</em>, it's just that making it hard for people to change things is
+not a useful substitute for having tested those changes in the first place.</p>
+
+<p>Trying to work with martyrs like that is about as soul-destroying as trying to work with the sort of change-control
+procedure which is merely the same attitude rendered as A Process.</p>
+
+<p>The other thing that happens is that if you treat people like children, they'll act like children. Put in a
+pr0n-blocking web-proxy at work and people will work out how to get around it so they can look at pr0n. It's an applied
+version of 'Well it doesn't say <em>don't</em> put washing-up liquid in the video-recorder'. The point that no-one with an
+interesting and fulfilling job would want to look at pr0n during work hours is lost in sulky justification and 'I'll
+show <em>them</em>' rationalisation.</p>
+
+<p>[ Yes I have worked in shops where the NT blokes had topless-totty screensavers. It's, I don't know, not something that
+sits well with me. ]</p>
+
+<p>So now you've a set of people cast in the role of children, the old-school unix admin falls into the role of
+long-suffering parent: "This server won't manage itself", "Don't leave your logs there", "I'll just clean up /tmp
+myself, shall I?"</p>
+
+<p>For anyone still reading, that is <em>massively</em> dysfunctional.</p>
+
+<p>As an aside, a behaviour pattern that I have noticed <em>a lot</em> is one where J. Random Dev will ask the admin(s) for
+something-or-other (Shiny new webscale tech as mentioned on Hacker News perhaps) and will be told that no they can't
+have that because no-one knows how to support it and had they thought about this other tech that looks a bit more
+scalable? At this point J R Dev strops off to their Project Manager and explains that must have (shiny new webscale
+tech) and that the admins were mean and said no. So the PM soon heaves to in the admin's cube and starts on about
+business-critical functionality and unacceptable delays and if you recognise that as 'If your mum says no, go ask your
+dad' then you win a rather grubby and worn Internets.</p>
+
+<h4>What is to be done?</h4>
+
+<p>Recognising what's going on is a really good start. I'm bound to say that the notion of DevOps culture is as good a
+countermeasure as I have found so far. Other than that, patches welcome. I'm not convinced it's a solvable problem
+without a reasonable cultural shift, and given the state of your organisation you may well not have that opportunity.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[EMFcamp]]></title>
+    <link href="http://failcake.github.com/blog/2012/09/05/emfcamp/"/>
+    <updated>2012-09-05T21:25:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/09/05/emfcamp</id>
+    <content type="html"><![CDATA[<p>For reasons that seemed jolly sensible at the time (ie - someone dared me to do it) I gave
+a much-modified version of The Puppetcamp Talk at <a href="https://www.emfcamp.org/">EMFcamp</a>. Modified in that it was four
+months later and we'd made some things work better, abandoned others and had some mostly-bright
+ideas for new stuff.</p>
+
+<p>Thus linked here somewhere should be <a href="/downloads/emfcamp.pdf">the PDF version of the slides</a>, which because I am that sort of
+forward-thinking sod (actually, I'd seen this be a requirement at 28c3, and it seemed sensible, so...)
+was the version I presented because the Nice People didn't have the relevent podule to connect a Macbook
+to the big screen in the tent.</p>
+]]></content>
+  </entry>
+  
+</feed>

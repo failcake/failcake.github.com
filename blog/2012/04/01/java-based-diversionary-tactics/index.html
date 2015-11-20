@@ -1,0 +1,449 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Java-based diversionary tactics - Devops malarkey</title>
+  <meta name="author" content="Bodge and Guesswork">
+
+  
+  <meta name="description" content="The other week, I stood in front of a room filled with my notional peers and allowed as how &#8216;ActiveMQ setup was a bit of a pig, but once you&# &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://failcake.github.com/blog/2012/04/01/java-based-diversionary-tactics">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Devops malarkey" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Devops malarkey</a></h1>
+  
+    <h2>Success. Failure. Cake.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:failcake.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Java-based Diversionary Tactics</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-01T16:54:00+01:00" pubdate data-updated="true">Apr 1<span>st</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>The other week, I stood in front of a room filled with my notional peers and allowed as how &#8216;ActiveMQ setup was a bit of a pig, but once you&#8217;d got it working it was pretty simple.&#8217;</p>
+
+<p>[FX: Pause for hollow laughter]</p>
+
+<p>In retrospect, that statement was obviously going to come back and bite me just as soon as it had located its special big false teeth. Thus it came to pass on Wednesday night that two of the brokers had a meltdown, which in turn broke some experimental Nagios-over-Stomp code and so kept the poor sod who was on call in a state of near panic as <em>everything</em> reportedly failed.</p>
+
+<p>Oops.</p>
+
+<p>So when I pitch up on Thursday AM, I am welcomed by the whole team merrily grousing about &#8216;your effing brokers&#8217; (Some software objects are like children and pets. When they&#8217;re well behaved and/or looking cute for visitors, they&#8217;re <em>our</em> children or pets. When they&#8217;ve just left a deposit behind the telly, they&#8217;re <em>your</em> children or pets). Indeed it was a right mess. One broker had used all the memory allocated and as if for spite had run out of filehandles too. It was all a bit odd. Some poking about revealed [AMQ-jira ticket] which more-or-less explains itself and the fact that it looked an awful lot like an experimental client wasn&#8217;t responding to messages as quickly as one might hope.</p>
+
+<!-- more -->
+
+
+<p>There&#8217;s a page or two on the Apache-AMQ site about the problem with &#8216;slow consumers&#8217;. The upshot seems to be that it is not yet a solved problem.</p>
+
+<p>Anyway. This is going to be a hand-waving description of the AMQ config we use. There may or may not be better ways of doing it, but this one (mostly) works for us.</p>
+
+<p>The most recent (and likely final) topology is a mesh (actually it looks like a wonky pentagram, but that&#8217;s neither here nor there), in that each broker (there are seven) is directly connected to the other six. The theory is that since the individual brokers aren&#8217;t guaranteed to stay up (more of that anon) each section of the network should have a pair of brokers available and all the clients should instantiate &#8216;reliable&#8217; comms by connecting to a failover pair. In Ruby (as evidenced by MCollective itself) and PHP, this works rather well.</p>
+
+<p>A tiresome thing to note is that the XML entities/objects/annoyances that make up the broker specification <em>have to be in alphabetical order</em> which, um, riiight.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;broker xmlns="http://activemq.apache.org/schema/core" brokerName="Your-broker-1" useJmx="true" persistent="false"></span></code></pre></td></tr></table></div></figure>
+
+
+<p>So far so good. Your various brokers should have different names.  The wrinkle here is that we turn off persistent messaging. The theory is that in the case of a broken consumer on a busy topic or queue - say you&#8217;re moving metrics or logs - the broker won&#8217;t get bogged down storing them to disk. As we have discovered, in that eventuality it&#8217;ll try its best before getting wedged. I think we&#8217;re in Linux OOM-killer territory here. There isn&#8217;t a good answer so much as a least-worst one.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;destinationPolicy>
+</span><span class='line'>    &lt;policyMap>
+</span><span class='line'>      &lt;policyEntries>
+</span><span class='line'>        &lt;policyEntry topic=">" advisoryForSlowConsumers="true" />
+</span><span class='line'>              &lt;policyEntry topic=">" advisoryWhenFull="true" />
+</span><span class='line'>              &lt;policyEntry queue="*.reply.>" gcInactiveDestinations="true" inactiveTimoutBeforeGC="300000" />
+</span><span class='line'>        &lt;policyEntry topic="metrics.>">
+</span><span class='line'>          &lt;pendingMessageLimitStrategy>
+</span><span class='line'>            &lt;constantPendingMessageLimitStrategy limit="50000"/>
+</span><span class='line'>          &lt;/pendingMessageLimitStrategy>
+</span><span class='line'>        &lt;/policyEntry>
+</span><span class='line'>          &lt;policyEntry topic="future.events.>">
+</span><span class='line'>          &lt;subscriptionRecoveryPolicy>
+</span><span class='line'>              &lt;fixedCountSubscriptionRecoveryPolicy maximumSize="3"/>
+</span><span class='line'>              &lt;/subscriptionRecoveryPolicy>
+</span><span class='line'>          &lt;/policyEntry>
+</span><span class='line'>      &lt;/policyEntries>
+</span><span class='line'>      &lt;/PolicyMap>
+</span><span class='line'>  &lt;/destinationPolicy></span></code></pre></td></tr></table></div></figure>
+
+
+<p>Policy entries set per-topic/queue behaviours. For instance we want one of the ActiveMQ.Advisory topics that the brokers use for internal management to grass up slow consumers and another one to emit messages when any other topic fills up. The JSON they emit can be jolly handy for monitoring what&#8217;s going on with a broker. The next-to-last entry sets a maximum message backlog for the metrics tree, and the final one allows anything consuming the future.events tree to see the last three messages in each subtopic. A kind of &#8216;previously on future.events&#8217; if you will.</p>
+
+<p>If you have more than one broker, you&#8217;ll need to set up some network connectors. The below examples fold in the changes for MCollective 1.3 which requires separate connectors for queues and topics. You&#8217;ll also note that the URIs are specified as SSL connections. Setting this up requires some faffery with Java Keytool and some XML that specifies where to find the keystores. This will turn up later because of the alphabetical ordering thing.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;networkConnectors>
+</span><span class='line'>    &lt;networkConnector 
+</span><span class='line'>      name="broker1-broker2-topics" 
+</span><span class='line'>      uri="static:(ssl://an.ip.add.ress:6166)" 
+</span><span class='line'>      userName="YourUsername" 
+</span><span class='line'>      password="YourPW" 
+</span><span class='line'>      duplex="true" 
+</span><span class='line'>      networkTTL="1" 
+</span><span class='line'>      decreaseNetworkConsumerPriority="true">
+</span><span class='line'>      &lt;excludedDestinations>
+</span><span class='line'>        &lt;queue physicalName=">" />
+</span><span class='line'>      &lt;/excludedDestinations>
+</span><span class='line'>    &lt;/networkConnector>
+</span><span class='line'>    &lt;networkConnector 
+</span><span class='line'>      name="broker1-broker2-queues" 
+</span><span class='line'>      uri="static:(ssl://an.ip.add.ress:6166)"
+</span><span class='line'>      userName="YourUsername" 
+</span><span class='line'>      password="YourPW" 
+</span><span class='line'>      duplex="true" 
+</span><span class='line'>      networkTTL="1" 
+</span><span class='line'>      decreaseNetworkConsumerPriority="true">
+</span><span class='line'>      &lt;excludedDestinations>
+</span><span class='line'>        &lt;topic physicalName=">" />
+</span><span class='line'>      &lt;/excludedDestinations>     
+</span><span class='line'>    &lt;/networkConnector>
+</span><span class='line'>  &lt;/networkConnectors></span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;plugins>
+</span><span class='line'>    &lt;authorizationPlugin>
+</span><span class='line'>      &lt;map>
+</span><span class='line'>        &lt;authorizationMap>
+</span><span class='line'>          &lt;AuthorizationEntries>
+</span><span class='line'>            &lt;authorizationEntry queue=">" write="admins" read="admins" admin="admins" />
+</span><span class='line'>            &lt;authorizationEntry topic=">" write="admins" read="admins" admin="admins" />
+</span><span class='line'>            &lt;authorizationEntry queue="mcollective.>" write="admins" read="admins" admin="admins" />
+</span><span class='line'>            &lt;authorizationEntry topic="mcollective.>" write="admins" read="admins" admin="admins" />
+</span><span class='line'>          &lt;/authorizationEntries>
+</span><span class='line'>        &lt;/authorizationMap>
+</span><span class='line'>      &lt;/Map>
+</span><span class='line'>    &lt;/authorizationPlugin>
+</span><span class='line'>
+</span><span class='line'>    &lt;simpleAuthenticationPlugin>
+</span><span class='line'>      &lt;users>
+</span><span class='line'>        &lt;authenticationUser username="YourUsername" password="YourPW" groups="admins,everyone"/>
+</span><span class='line'>        &lt;authenticationUser username="Joe-Sysadmin" password="JoesPW" groups="admins,everyone"/>
+</span><span class='line'>      &lt;/users>
+</span><span class='line'>    &lt;/SimpleAuthenticationPlugin>
+</span><span class='line'>  &lt;/plugins></span></code></pre></td></tr></table></div></figure>
+
+
+<p>Topics, queues and users. Allow admin users to read, write (and thus create, which is somewhat crucial) topics and queues. Also set up some of those admin users. Since the brokers don&#8217;t create the topics or queues until something actually starts writing to one, one could envisage a situation where the only entries in the config file are those giving admin rights. Further, since the Java code is capable of doing its user-management via LDAP, one ought to be able to dispense with the hard-coded user entries. Since one has to restart the brokers each time the config files are changed, this would likely be a Good Thing. As it is, there are a pair of brokers in each VLAN and we take care to specify that clients should expect to do failover between them.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;sslContext>
+</span><span class='line'>    &lt;sslContext keyStore="file:${activemq.base}/conf/broker.ks" keyStorePassword="TopSecret" trustStore="file:${activemq.base}/conf/client.ts" trustStorePassword="SecretTop"/>
+</span><span class='line'>  &lt;/SslContext></span></code></pre></td></tr></table></div></figure>
+
+
+<p>SSL. What I have taken to doing is generating a certificate for each broker and storing it in broker.ks. Then I export the certificates and generate a client.ts file containing all the &#8216;other&#8217; certificates. There&#8217;s probably a better way of doing it.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;transportConnectors>
+</span><span class='line'>    &lt;transportConnector name="openwire" uri="ssl://0.0.0.0:6166?socketBufferSize=131072?ioBufferSize=16384"/>
+</span><span class='line'>    &lt;transportConnector name="stomp" uri="stomp+nio://0.0.0.0:61613?socketBufferSize=131072?ioBufferSize=16384?transport.closeAsync=false"/>
+</span><span class='line'>  &lt;/transportConnectors></span></code></pre></td></tr></table></div></figure>
+
+
+<p>You will need some transports. Stomp for the MCollective rig and our Ruby/PHP/Perl clients, Openwire for the Java-native messaging used by the inter-broker links.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/broker></span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Fin.</em></p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">JHR</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-04-01T16:54:00+01:00" pubdate data-updated="true">Apr 1<span>st</span>, 2012</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/alanis-morrisette/'>Alanis Morrisette</a>, <a class='category' href='/blog/categories/xml-is-the-work-of-satan/'>XML is the work of Satan</a>, <a class='category' href='/blog/categories/pro-celebrity-swearing/'>pro-celebrity swearing</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://failcake.github.com/blog/2012/04/01/java-based-diversionary-tactics/" data-via="" data-counturl="http://failcake.github.com/blog/2012/04/01/java-based-diversionary-tactics/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2012/03/29/much-todo-about-some-things/" title="Previous Post: Much todo about some things">&laquo; Much todo about some things</a>
+      
+      
+        <a class="basic-alignment right" href="/blog/2012/04/19/one-very-important-thought/" title="Next Post: One very important thought">One very important thought &raquo;</a>
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/11/20/tumbleweed/">Tumbleweed</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/">re-inventing the wheel - square and on fire</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/">Treating people like dicks (distance learning edition)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/28/short-commercial-break/">Short commercial break</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/">There are two hard problems in computer science: caching</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/failcake">@failcake</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'failcake',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bodge and Guesswork -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

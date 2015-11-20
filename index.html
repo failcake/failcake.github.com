@@ -1,1 +1,835 @@
-My Octopress Page is coming soon &hellip;
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Devops malarkey</title>
+  <meta name="author" content="Bodge and Guesswork">
+
+  
+  <meta name="description" content="&#8230; And then everbody left. I could write a thing about burnout, but I was too fried to notice when it happened. The interesting/exciting/ &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://failcake.github.com">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Devops malarkey" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Devops malarkey</a></h1>
+  
+    <h2>Success. Failure. Cake.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:failcake.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/11/20/tumbleweed/">Tumbleweed</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2015-11-20T20:45:00+00:00" pubdate data-updated="true">Nov 20<span>th</span>, 2015</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>&#8230; And then everbody left.</p>
+
+<p>I could write a thing about burnout, but I was too fried to notice when it happened. The interesting/exciting/disturbing
+thing about being properly stressed is that becomes entirely normal and you only realise something is broken when the
+music stops. Then all the things in your head that you&#8217;ve been ignoring pitch up at once and are like &#8216;HELLO&#8217; and waving
+cartoon cricket-bats with nails and broken glass embedded.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/">Re-inventing the Wheel - Square and on Fire</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-02-07T20:27:00+00:00" pubdate data-updated="true">Feb 7<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I am incompetent and I can&#8217;t make Vagrant work.</p>
+
+<p>At least, that&#8217;s the excuse I&#8217;ve been making for not joining in with the
+rest of the floor in using that for Puppet (among other things) development. Instead, my dev-rig is a VM running as a
+puppetmaster that&#8217;s tracking the changes I make to a given branch in our Git repo via the magic of post-commit hooks and
+another VM in which I can run &#8216;puppet agent &#8211;debug &#8211;blah &#8211;server (first VM)&#8217;. Once in a while I remember to blow away
+the second VM so I can make sure everything builds in the right order. However, even with snapshots it&#8217;s just slightly
+too painful to happen regularly.</p>
+
+<p>Meanwhile, quite a lot of the recent developments at Future have involved rigs of between eight and twelve boxes.
+Generating a worthwhile test/dev version of one of those is rather tiresome because even if you&#8217;ve got the spare
+horsepower lying about, you have to spend yea-long wiring it all together, sanitising the static and/or test data and
+it all quickly gets completely <em>oh god why did i even get out of bed i should have been a farmer like my dad mind you if
+i had done that i&#8217;d have been out of bed at six to go feed the sheep on long barrow bank perhaps not after all&#8230;</em></p>
+
+<p>So when a mildly broken Dell R620 arrived back from one of the DCs coincidentally with me wanting to have a play with
+this Docker business, it all seemed a bit convenient.</p>
+
+<p>I am incompetent and I can&#8217;t make Docker work. On Debian.</p>
+
+<p><a href="http://linuxcontainers.org/">LXC</a>, on the other hand, was slightly simpler than falling off a log.</p>
+
+<p>Given that it&#8217;s simple to build a puppetmaster that&#8217;s the same as one of the live ones, and that all the machine config
+I currently care about is in a manifest, it should be pretty easy to generate a container and have it puppet itself up
+tolerably quickly.</p>
+
+<p>This indeed turned out to be the case. However, having to hand-allocate IP addresses and fiddle about with container
+naming such that they picked up the configs in use on the live rig was all a bit too hands-on and really not what I
+wanted.</p>
+
+<p><a href="http://www.thekelleys.org.uk/dnsmasq/doc.html">DNSMasq</a> fixed the first problem. It is a surprisingly useful tool.</p>
+
+<p>A rakefile which read a list of made-up machine names, generated softlinks to the actual hiera node configs and then
+instantiated the relevant containers fixed the second.</p>
+
+<p>I also spent <em>quite some time</em> building a Wheezy &#8216;image&#8217; that minimised apt-get as much as possible.</p>
+
+<p>Result - fully puppeted containers come up in circa a minute. Somewhat longer if you have to install PHP.
+If I didn&#8217;t have quite such a rational hatred of golden images and all who sail in them, it would likely be faster
+still.</p>
+
+<p>The next part is a bit fiddly.</p>
+
+<p>The example problem I now have is that some parts of my collection of yea-many VMs want to connect to other parts. For
+instance if I have a redis slave, I need to know what the master&#8217;s IP address might be during the puppet run. At Future,
+we generate a location fact and use that in our hiera, er, hierarchy to configure things like message brokers,
+smarthosts and DNS ordering. I could just add yet another location - testbox, or something - allocate a block of IP
+space and then add some extra indirection. And then I could do that again for each person and/or project that wanted to
+run up a test-rig. At which point one has just run into a behaviour pattern that should probably be named &#8216;It&#8217;s OK, I
+can fix that for you.&#8217;</p>
+
+<p>I first came across this in, er, 1991 when doing some NHS-related coding. One of the other chaps had written a thing
+which had to deal with, oh I don&#8217;t know, ten items or something. Because he was a forward-thinking sort, he allocated
+sixteen slots in his array and beetled off all smug for a coffee and a corned beef sandwich. As you might expect, a few
+months later one site or other had a list of seventeen items and a bug report. &#8216;It&#8217;s OK, I can fix that for you!&#8217; went
+our chap and expanded the array to the clearly ludicrous value of some twenty-three slots&#8230;</p>
+
+<p>There&#8217;s scope for an Eric Berne knockoff book of tiresome technical behaviour antipatterns, isn&#8217;t there?</p>
+
+<p>Anyway, I&#8217;m using DHCP, and I wanted the entire edifice to work with little or no extra typing.</p>
+
+<p>CoreOS&#8217;s <a href="https://github.com/coreos/etcd">ETCD</a> looked like a good fit. Emit salient facts to etcd database when bringing up (say) redis master, then
+query same via <a href="https://github.com/garethr/hiera-etcd">Garethr&#8217;s hiera-etcd</a> when bringing up the slave. Profit!</p>
+
+<p>That bit did take a little tinkering to get right.</p>
+
+<p>It seems to me that the notion of a reactive puppet configuration is really rather interesting. Other people may well be
+screaming in terror and jabbering about things like &#8216;deadly embrace&#8217; and &#8216;terrible feedback loops are fine for the Jesus
+and Mary Chain (Or A Place to Bury Strangers if that&#8217;s too retro for you) but have no place in a theoretically stable
+configuration.&#8217; However, just as a top-down decision process enforced by rigid hierarchy is a hateful idea for a
+workplace environment, so it is for a machine environment.</p>
+
+<p>TL;DR - code in <a href="https://github.com/FuturePublishing/model-village">Github</a>, patches welcome.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/">Treating People Like Dicks (Distance Learning Edition)</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-01-15T20:58:00+00:00" pubdate data-updated="true">Jan 15<span>th</span>, 2014</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Today one of the old Solaris boxes expired. Well, I say &#8216;box&#8217; and &#8216;expired&#8217;. I mean &#8216;1U
+Solaris-X86-what-were-we-thinking machine&#8217; and &#8216;fell into maintenance mode while I was eating breakfast&#8217;. And, in a
+truly extraordinary amount of digression and rambling, when I say &#8216;what were we thinking&#8217; I probably mean &#8216;The kit had
+actually managed to serve MySQL tolerably reliably for some 1500 days.&#8217;</p>
+
+<p>I don&#8217;t know if you lot remember the uptime wars, but they were medium sized in the late nineties. Rather like Sleeper
+or Menswear, but with fewer annoying tunes and rather more waiting around. We learned better as soon as someone equated
+long uptimes with being an obvious target for some bollix with a copy of Metasploit.</p>
+
+<p>Anyway. A machine that hadn&#8217;t been restarted since it was shoved in a rack, that was host to a pile of Solaris zones.
+What could possibly have gone wrong with that?</p>
+
+<p>It transpired that one set of binary logs or another had experienced a Jolly Interesting Time and had managed to confuse
+the zpool enough that the alleged hypervisor had thrown a strop and gone into maintenance mode. Which, um, <em>okay&#8230;</em></p>
+
+<p>Thankfully there are no beard-fondling Solaris types around to tell me that the next move was a Bad Idea, but mucking
+out the disks, clearing maintenance mode and restarting the beast looked to be the least-worst option.</p>
+
+<p>That is until we discover that the running network config had never been written back to various bits of /etc and indeed
+there were no build notes or valid excuses on either the deceased wiki or the somewhat shiny new one.</p>
+
+<p>There now followed a swearing competition.</p>
+
+<p>I suspect that what happened in 2009 was pretty much like what happened this morning. After the eighth or twelfth reboot, the
+people wanting the databases back won over &#8216;I would like to make this network config survive a reboot surely the
+combined wit of the Sun/Oracle doc and three dozen assorted blogs and HOWTOs can&#8217;t all be missing the vital something
+or other that we can&#8217;t spot either&#8230;&#8217;</p>
+
+<p>It&#8217;s still an unpleasant trick, though.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/10/28/short-commercial-break/">Short Commercial Break</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-28T23:24:00+00:00" pubdate data-updated="true">Oct 28<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>Trigger warning: contains talk of horrible old Unix kit running horrible old Unix</em></p>
+
+<p>There&#8217;s a good chance I&#8217;m probably a massive arsehole and I get paid for it. Which, I dunno, maybe I&#8217;m supposed to be
+pleased with myself about it because being <em>disruptive</em> is seen as a good thing these days. The last time I came across
+people being described as such, they were the hyperactive (or just sugared-up) kids at junior school who seemed to be
+convinced that it was all about them and if it wasn&#8217;t they&#8217;d throw a massive strop and wander round with a lower lip
+hung out like a soup-plate. I&#8217;m assuming a <em>disruptive technology</em> doesn&#8217;t have a howling fit in the middle of the
+organic vegetable section of the supermarket if it doesn&#8217;t get its own way, but then I wouldn&#8217;t be surprised if it did.</p>
+
+<p>The thing about the arseholedom isn&#8217;t malevolent in the slightest, it&#8217;s more a case of going up to someone and asking
+them why they&#8217;re nailing their legs to the table. You get this very weird selection of looks when you do things like
+that. As if they&#8217;re expecting you to come up with something sarcastic about using the contact adhesive on the shelf.
+Then they&#8217;ll say something like &#8216;Well we&#8217;ve <em>always</em> nailed our legs to the table in this department because it keeps
+the bees from flying to Winchcombe.&#8217; Which, um, <em>okay&#8230;</em></p>
+
+<p>I mean, there&#8217;s no answer to that. Especially when some manager piles out of the end office going &#8220;D&#8217;you want the bees
+to go to Winchcombe? Do you? Because that&#8217;s what&#8217;s going to happen if you don&#8217;t buck your ideas up and crack on with
+that hammering.&#8221;</p>
+
+<p>But you have to try. You point to one of the chairs in the corner and suggest that using those would be much less
+unpleasant. That&#8217;s when the trouble <em>really</em> starts. The manager goes pop-eyed and kicks off about &#8216;You smart buggers in
+IT think you know everything coming down here with your <em>ideas</em> I don&#8217;t have time for <em>ideas</em> there&#8217;s barely enough time
+to send Bob here down to the hardware shop for more nails, what with the bleeding and the Tetanus jabs and now you want
+us to cross-train to <em>chairs</em> I&#8217;m glad you think we all sit around with glue-guns like you wasters someone should sort
+you lot out once and for all.&#8217;</p>
+
+<p>So you pull a chair over and they look at you like you just shat out a railway station.</p>
+
+<p>What this is really about is that years ago (HP-UX 10.20 ago, in fact) I was given a HP9000 to look after. In poking
+around the filesystem to see what dreadful sort of albatross I&#8217;d been handed, I found a whole pile of cron-jobs that ran
+scripts to monitor sendmail and some more scripts that re-started sendmail and further scripts that tested the state of
+earlier scripts. It all seemed a bit pointless because even then sendmail could more or less be left alone to generate
+remote root exploits and sometimes deliver mail.</p>
+
+<p>I asked one of the longer-serving chaps and he came over all leg-nailing. Apparently it wasn&#8217;t to be touched because
+sendmail was dreadfully unreliable and crashed every half hour.</p>
+
+<p>I nodded, smiled and went off to throw away all the junk and upgrade the sendmail install to $latest.</p>
+
+<p>It didn&#8217;t crash.</p>
+
+<p>The point being that writing long-lived daemon processes is really very well known science and instead of mucking about
+with multiple layers of monitoring and backup, you&#8217;re much better off making the daemon work right.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/">There Are Two Hard Problems in Computer Science: Caching</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-10-27T23:18:00+00:00" pubdate data-updated="true">Oct 27<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p><em>Title stolen from one of the myriad on the internet more cleverer and witty than wot I am. However, Octopress seems to
+have added its own twist, so you&#8217;ll have to do the rest of the &#8216;joke&#8217; yourselves&#8230;</em></p>
+
+<p>Years ago, not long after a visit to the Anarchist Bookshop and having become mildly peeved with the names of computers at Previous Employ (The failover pair named after the (in)appropriate Southpark characters, the ones that were funny if you were twelve&#8230; Mind, we <em>were</em> all twelve; that was part of the fun. Mind also that our American management decided to call us all &#8216;spanners&#8217; because of I don&#8217;t know what made up terrible morale-boosting exercise. Tip for the MBAs out there - if your entire English team has a fit of the giggles in an &#8216;all hands&#8217;, you have just said something hysterically inappropriate and they are <em>not</em> going to let on until you have the t-shirts printed), I started naming kit I built after anarchists. I think I got as far as kropotkin and bakunin before the option of voluntary redundancy came up and I followed my political convictions and ran pell-mell towards the £MONEY.</p>
+
+<p>The Americans had something of a sense of humour failure (or actually maybe they didn&#8217;t in retrospect) and started naming machines nasdaq, bourse et al.</p>
+
+<p>Last year, self &amp; Sam(oth) start calling the notion of Devops, &#8216;anarcho-syndicalism in action&#8217;.</p>
+
+<p>Actually, I think he found the reference elsewhere, but it totally struck home because a lot of the alleged problems that the modern middle class while male technocratic elite have to put up with (only decent latte halfway across town, nowhere to dry yr bike kit in the office) are best approached with an eye to Solidarity (with other teams. Don&#8217;t let &#8216;managers&#8217; or &#8216;stakeholders&#8217; play at divide and conquer), Direct Action (fix those problems yourselves. You know your environment best. &#8216;Management&#8217; &#8216;control&#8217; is bollocks) and Worker&#8217;s Self-Management (do not replicate process with code. Optimise it out. Build the environment in which you wish to work. No-one will do it for you.)</p>
+
+<p>And, obviously, this is a debased and pitiful version of a full-on political movement. Which is generally home to misogynistic rape-apologist dickheads it seems. (Who act like the polis at the first sign of trouble because that&#8217;s the only model of dissent-management they have. There is a policeman inside all of our heads it must be stopped.)</p>
+
+<p>You may imagine my lack of surprise at discovering a tool called &#8216;Serf&#8217; which lives at &#8216;serfdom.io&#8217;</p>
+
+<p>Again, that could well be irony so sufficiently advanced that it is indistinguishable from reality. However, such
+Hayek-followers as I have come across didn&#8217;t hold with that sort of malarkey.</p>
+
+<p>I guess this sort of thinking fits in well with the sort of sods who talk about being &#8216;disruptive&#8217; but actually just want other people to provide free services for which they can charge rent.</p>
+
+<p>There&#8217;s probably another &#8216;talk&#8217; in this, but I think it&#8217;s the sort of thing better done by the likes of Shanley Kane.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/06/28/giving-stuff-away-on-the-internet-is-probably-a-good-thing/">Giving Stuff Away on the Internet Is Probably a Good Thing.</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-06-28T16:51:00+01:00" pubdate data-updated="true">Jun 28<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>For reasons that will become sadly apparent when these posts are read in the wrong order, I&#8217;ve been engaged in the job of interviewing people who&#8217;ve expressed interest in the notion of coming to work for Future. At least one of those people was keen to point out that they&#8217;d been looking at our code on Github and was keen to come along and play with it.</p>
+
+<p>Which was nice.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/03/22/small-parts-isolated-and-deployed/">Small Parts Isolated and Deployed</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-03-22T22:41:00+00:00" pubdate data-updated="true">Mar 22<span>nd</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>It seems that one of the things that people new to Puppet (and sometimes by extension, automated CD/CI rigs) try to do
+is brickhammer their existing deployment chains into the thing. You can go look at the mailing list and about once a
+week, someone will go &#8216;I need Puppet to manage this thumping great source directory which we will distribute to
+$list-of-servers and then build in situ. How do I make Puppet do a <em>./configure &amp;&amp; make &amp;&amp; make install?&#8217;</em></p>
+
+<p>To which the answer is &#8216;No.&#8217; and the answer to <em>that</em> is stropping because $reasons.</p>
+
+<p>If you or your organisation still want to do that sort of thing, my suggestion is that you bin the terrible Unix systems
+you&#8217;re using and try one of the many free (or indeed expensive) versions that come with 1990s features like a
+package-management system. Mind, if you&#8217;re using Gentoo for production systems then I can&#8217;t help you. Please stop
+reading there is nothing for you here.</p>
+
+<p>Of course you can&#8217;t package up everything you might wish to bung on a server from a distance. There are also going to be
+rules-lawyers hunting out corner cases in order to prove me wrong. Which, I don&#8217;t know, seems to be the broken behaviour
+patterns of those who&#8217;re somehow proud of keeping some ancient and spavined code-management technique alive into the
+C21st. Don&#8217;t do that either, you&#8217;re just making you own life hard. Or you&#8217;re working for an organisation ditto and why
+are you doing that?</p>
+
+<p>Our own rules are entirely arbitrary and look like this:</p>
+
+<p>Rebuilt Debian packages and/or backports and/or wonky Ruby code that has a config file and an initscript are served as
+.debs from our own repo. Building your own Debian repository is desperately simple.</p>
+
+<p>Website code is managed through the magic of git, or the nearly-magic of svn. Not via puppet. The site furniture is
+instantiated via some puppet, but deploys happen via MCollective. Sinatra-based webapps also fit here, even though
+they&#8217;re wonky Ruby code with config files and initscripts. We may fix this. Or not. Who can say?</p>
+
+<p>Tomcat apps are emitted from the end of a Jenkins-based chain and largely manage themselves. Getting Puppet involved
+just seems to confuse things.</p>
+
+<p>The new special case that prompted this ramble is a Java app that&#8217;s going to sit on some edge servers. The last thing
+that happens in that Jenkins chain is that the app is packaged up as a .deb. Ok, a Java-style .deb, so the file-layout
+would make a Debian packager shit themselves with hatred, but still. Since our package generation has been mostly &#8216;by
+hand&#8217; up until now, I&#8217;d never bothered with hacking up the auto-upload bits of reprepro. For the Jenkins stuff to work
+properly, I had to fix that. Thus when there&#8217;s a new build of the Java app, it appears moments later (depending on
+cronjob) in our Debian repository.</p>
+
+<p>At that point, I thought it would be a good thing to have the repository-uploader send a message to the event-logger so
+we could see that there was a new version of code and something should probably be done about it. Not long after that, I
+realised that the &#8216;something&#8217; might as well be automated, too. So actually, the repository-uploader will emit a message
+to a relevant topic on our message-bus, which will trigger an &#8216;apt-get update&#8217; on the servers where that app is
+installed. If we&#8217;re feeling brave and the Puppet code that manages the app has &#8216;ensure => latest&#8217; in the package
+statement, then they&#8217;ll go on and install that newly updated version.</p>
+
+<p>Which is kind of exactly the behaviour one would expect from a continuous deployment rig.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2013/02/24/i-had-that-janov-bloke-in-the-back-of-my-cab-once/">I Had That Janov Bloke in the Back of My Cab Once</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2013-02-24T15:47:00+00:00" pubdate data-updated="true">Feb 24<span>th</span>, 2013</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Here&#8217;s a non-technical thing that&#8217;s been wandering round my head: brogrammers are more or less exactly what you can
+expect in an environment run by old-school Unix admins. Or rather, they emerged as a species in reaction to an
+environment which itself was a reaction.</p>
+
+<p>I guess I&#8217;d better unpack that and provide some material so people can go TL;DR.</p>
+
+<h4>Brogrammers.</h4>
+
+<p>So (i). Brogrammer. You can go look that up on the internet, because that&#8217;s what sensible people do. If they come across
+a term or statement they&#8217;re not sure about, they can poke about the internet for a bit, gather information from several
+sources and perhaps come to a useful conclusion. It&#8217;s not, y&#8217;know, <em>required</em>, but it&#8217;s nice when it happens and makes
+them look much less like dicks than the sort of people who&#8217;ll just stand there going &#8216;No! <em>Tell</em> me what you mean!&#8217;</p>
+
+<p>I would also ask you to go read this: <a href="http://blog.prettylittlestatemachine.com/blog/2013/02/20/what-your-culture-really-says">what your culture really says</a>, because it crystallised (or
+began the process of precipitation or whatever) a lot of what this ramble may or may not be about. I have no particular
+axe to grind with that piece because I am a white English bloke  in my mid forties, and if I&#8217;ve been a participant in
+any of the scenarios listed I&#8217;ve not had the wit to realise it. It rings true, though. True enough that I suspect the
+&#8216;if&#8217; in that preceding sentence is a &#8216;when&#8217;.</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/2013/02/24/i-had-that-janov-bloke-in-the-back-of-my-cab-once/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/12/28/finding-places-to-put-things/">Finding Places to Put Things</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-12-28T23:31:00+00:00" pubdate data-updated="true">Dec 28<span>th</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>I suspect this blog-thing will just contain sporadic apologies for lack of content for most of its lifetime.</p>
+
+<p>Anyway.</p>
+
+<p>This time the excuses have been brought to you by the words &#8216;fail&#8217;, &#8216;power&#8217;, &#8216;generator&#8217;, &#8216;contactor&#8217;, &#8216;250A supply&#8217;,
+&#8216;melted&#8217; and the phrases &#8216;boot that filer from a different Vol0&#8217;, &#8216;can you smell smoke?&#8217; and &#8216;Oh hell not again&#8217;.</p>
+
+<p>As you might imagine, it&#8217;s been busy and the DR plan has been tested and found interesting.</p>
+
+<p>We&#8217;re still Barberising and Hiera-ing up our shonky collection of Puppet modules. I&#8217;d say that they&#8217;re getting less
+shonky by the day, but it&#8217;s taking longer than that. I hesitate to talk about &#8216;patterns&#8217;, because&#8230; Actually, I think
+that&#8217;s an example of self-taught-hacker anti-intellectualism, which is an equal amount of rubbish as its opposite.</p>
+
+<p>So. The Barberis(ing|ed) pattern is a fine thing and, when used in combination with the wonder that is Hiera, allows us
+to do more things in simpler code.</p>
+
+<p>However. One of the modules that I&#8217;d been putting off refactoring (so &#8216;patterns&#8217; are suspect but &#8216;refactoring&#8217; is fine,
+eh?) was the one that manages our NSD install and thus the DNS for quite a number of domains, some of which contain
+rather popular websites.</p>
+
+<p><a href="http://www.nlnetlabs.nl/projects/nsd/">NSD is the authoritative-only nameserver daemon written by NLNet Labs</a>, who are a top bunch of chaps. We abandoned Bind
+after there were one too many vulnerability notices.</p>
+
+<p>I&#8217;d been putting off the work because the v0.1 module just drops the entirety of the zone-files directory under
+../files/ and lets Puppet do the work of synchronising the files across the nameservers. It&#8217;s not as if it&#8217;s a terrible
+thing to do at first glance - Puppet&#8217;s file-serving means you can stop faffing with hand-brewed rsync scripts for
+managing the out-of-band DNS data, and if you&#8217;ve got your Puppet tree in a sensible SCM, you get version control &#8216;for
+free&#8217;.</p>
+
+<p>However (again), great lumps of org-specific data like that shouldn&#8217;t really, we are told, be held within the module
+tree. It&#8217;s not necessarily obvious where the data should go, though. Nor is it terribly obvious how you connect it back
+to the Puppet module and have changes in the one signal the other to perform tasks.</p>
+
+<p>Well, it is if you look at the right corners of the Internet, but this thing is mostly me groping around and trying
+stuff out as a warning to others.</p>
+
+<p>NSD installation and management goes in the now-Barberised NSD module.</p>
+
+<p>This also deposits code that rebuilds the NSD config file when a domain is added or removed. And indeed the out-of-band
+master list of domains, which semi-obviously has to travel separately from the zonefiles for $reasons.</p>
+
+<p>(It&#8217;s about this time that someone-who-is-not-me would be going &#8216;Why isn&#8217;t all this domain gubbins in a nice database
+somewhere, then all zone maintenance would be a simple &#8216;SELECT mumble FROM yinglebart WHERE tewkesbury ISNT something&#8221;,
+which would be very shortly before I hauled out the sarcasm throwing machine.)</p>
+
+<p>The zonefiles live in a git repo of their own. That repo is cloned down onto the master DNS server(s) and kept current via the
+magic of post-commit hooks. Meanwhile, there&#8217;s a file resource in the NSD module which looks like this:</p>
+
+<pre><code>file { '/var/lib/nsd3/.git/HEAD':
+  audit   =&gt; content,
+  notify  =&gt; Exec['rebuild'],
+}
+
+exec { 'rebuild':
+  command     =&gt; '/etc/nsd3/code/refresh.sh',
+  refreshonly =&gt; true,
+}
+</code></pre>
+
+<p>&#8230; Which is lifted wholesale from
+<a href="https://github.com/jordansissel/puppet-examples/tree/master/unmanaged-file-notify">here.</a> Either we&#8217;ve found one of the non-terrible use cases for this hack, or I&#8217;ll be
+writing another rambling post in a few months when I&#8217;ve had a better idea.</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2012/10/23/actually-just-testing-something-else/">Actually Just Testing Something Else</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2012-10-23T14:21:00+01:00" pubdate data-updated="true">Oct 23<span>rd</span>, 2012</time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>You&#8217;d think, after all this time, that I could bosh things together and have them perform some semblance of useful work, right?</p>
+
+<p>You&#8217;d <em>think&#8230;</em></p>
+
+<p>&#8230; Argh. &#8216;-&#8217; characters in directory names? Surely not&#8230;</p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+      <a class="prev" href="/blog/page/2/">&larr; Older</a>
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/11/20/tumbleweed/">Tumbleweed</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/">re-inventing the wheel - square and on fire</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/">Treating people like dicks (distance learning edition)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/28/short-commercial-break/">Short commercial break</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/">There are two hard problems in computer science: caching</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/failcake">@failcake</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'failcake',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Bodge and Guesswork -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>

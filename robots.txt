@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: 
+
+Sitemap: http://failcake.github.com/sitemap.xml 

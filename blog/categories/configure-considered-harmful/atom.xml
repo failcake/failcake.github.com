@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: configure considered harmful | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/configure-considered-harmful/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Small parts isolated and deployed]]></title>
+    <link href="http://failcake.github.com/blog/2013/03/22/small-parts-isolated-and-deployed/"/>
+    <updated>2013-03-22T22:41:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/03/22/small-parts-isolated-and-deployed</id>
+    <content type="html"><![CDATA[<p>It seems that one of the things that people new to Puppet (and sometimes by extension, automated CD/CI rigs) try to do
+is brickhammer their existing deployment chains into the thing. You can go look at the mailing list and about once a
+week, someone will go 'I need Puppet to manage this thumping great source directory which we will distribute to
+$list-of-servers and then build in situ. How do I make Puppet do a <em>./configure &amp;&amp; make &amp;&amp; make install?'</em></p>
+
+<p>To which the answer is 'No.' and the answer to <em>that</em> is stropping because $reasons.</p>
+
+<p>If you or your organisation still want to do that sort of thing, my suggestion is that you bin the terrible Unix systems
+you're using and try one of the many free (or indeed expensive) versions that come with 1990s features like a
+package-management system. Mind, if you're using Gentoo for production systems then I can't help you. Please stop
+reading there is nothing for you here.</p>
+
+<p>Of course you can't package up everything you might wish to bung on a server from a distance. There are also going to be
+rules-lawyers hunting out corner cases in order to prove me wrong. Which, I don't know, seems to be the broken behaviour
+patterns of those who're somehow proud of keeping some ancient and spavined code-management technique alive into the
+C21st. Don't do that either, you're just making you own life hard. Or you're working for an organisation ditto and why
+are you doing that?</p>
+
+<p>Our own rules are entirely arbitrary and look like this:</p>
+
+<p>Rebuilt Debian packages and/or backports and/or wonky Ruby code that has a config file and an initscript are served as
+.debs from our own repo. Building your own Debian repository is desperately simple.</p>
+
+<p>Website code is managed through the magic of git, or the nearly-magic of svn. Not via puppet. The site furniture is
+instantiated via some puppet, but deploys happen via MCollective. Sinatra-based webapps also fit here, even though
+they're wonky Ruby code with config files and initscripts. We may fix this. Or not. Who can say?</p>
+
+<p>Tomcat apps are emitted from the end of a Jenkins-based chain and largely manage themselves. Getting Puppet involved
+just seems to confuse things.</p>
+
+<p>The new special case that prompted this ramble is a Java app that's going to sit on some edge servers. The last thing
+that happens in that Jenkins chain is that the app is packaged up as a .deb. Ok, a Java-style .deb, so the file-layout
+would make a Debian packager shit themselves with hatred, but still. Since our package generation has been mostly 'by
+hand' up until now, I'd never bothered with hacking up the auto-upload bits of reprepro. For the Jenkins stuff to work
+properly, I had to fix that. Thus when there's a new build of the Java app, it appears moments later (depending on
+cronjob) in our Debian repository.</p>
+
+<p>At that point, I thought it would be a good thing to have the repository-uploader send a message to the event-logger so
+we could see that there was a new version of code and something should probably be done about it. Not long after that, I
+realised that the 'something' might as well be automated, too. So actually, the repository-uploader will emit a message
+to a relevant topic on our message-bus, which will trigger an 'apt-get update' on the servers where that app is
+installed. If we're feeling brave and the Puppet code that manages the app has 'ensure => latest' in the package
+statement, then they'll go on and install that newly updated version.</p>
+
+<p>Which is kind of exactly the behaviour one would expect from a continuous deployment rig.</p>
+]]></content>
+  </entry>
+  
+</feed>

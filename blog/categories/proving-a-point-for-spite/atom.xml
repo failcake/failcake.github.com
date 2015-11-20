@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: proving a point for spite | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/proving-a-point-for-spite/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[re-inventing the wheel - square and on fire]]></title>
+    <link href="http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/"/>
+    <updated>2014-02-07T20:27:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire</id>
+    <content type="html"><![CDATA[<p>I am incompetent and I can't make Vagrant work.</p>
+
+<p>At least, that's the excuse I've been making for not joining in with the
+rest of the floor in using that for Puppet (among other things) development. Instead, my dev-rig is a VM running as a
+puppetmaster that's tracking the changes I make to a given branch in our Git repo via the magic of post-commit hooks and
+another VM in which I can run 'puppet agent --debug --blah --server (first VM)'. Once in a while I remember to blow away
+the second VM so I can make sure everything builds in the right order. However, even with snapshots it's just slightly
+too painful to happen regularly.</p>
+
+<p>Meanwhile, quite a lot of the recent developments at Future have involved rigs of between eight and twelve boxes.
+Generating a worthwhile test/dev version of one of those is rather tiresome because even if you've got the spare
+horsepower lying about, you have to spend yea-long wiring it all together, sanitising the static and/or test data and
+it all quickly gets completely <em>oh god why did i even get out of bed i should have been a farmer like my dad mind you if
+i had done that i'd have been out of bed at six to go feed the sheep on long barrow bank perhaps not after all...</em></p>
+
+<p>So when a mildly broken Dell R620 arrived back from one of the DCs coincidentally with me wanting to have a play with
+this Docker business, it all seemed a bit convenient.</p>
+
+<p>I am incompetent and I can't make Docker work. On Debian.</p>
+
+<p><a href="http://linuxcontainers.org/">LXC</a>, on the other hand, was slightly simpler than falling off a log.</p>
+
+<p>Given that it's simple to build a puppetmaster that's the same as one of the live ones, and that all the machine config
+I currently care about is in a manifest, it should be pretty easy to generate a container and have it puppet itself up
+tolerably quickly.</p>
+
+<p>This indeed turned out to be the case. However, having to hand-allocate IP addresses and fiddle about with container
+naming such that they picked up the configs in use on the live rig was all a bit too hands-on and really not what I
+wanted.</p>
+
+<p><a href="http://www.thekelleys.org.uk/dnsmasq/doc.html">DNSMasq</a> fixed the first problem. It is a surprisingly useful tool.</p>
+
+<p>A rakefile which read a list of made-up machine names, generated softlinks to the actual hiera node configs and then
+instantiated the relevant containers fixed the second.</p>
+
+<p>I also spent <em>quite some time</em> building a Wheezy 'image' that minimised apt-get as much as possible.</p>
+
+<p>Result - fully puppeted containers come up in circa a minute. Somewhat longer if you have to install PHP.
+If I didn't have quite such a rational hatred of golden images and all who sail in them, it would likely be faster
+still.</p>
+
+<p>The next part is a bit fiddly.</p>
+
+<p>The example problem I now have is that some parts of my collection of yea-many VMs want to connect to other parts. For
+instance if I have a redis slave, I need to know what the master's IP address might be during the puppet run. At Future,
+we generate a location fact and use that in our hiera, er, hierarchy to configure things like message brokers,
+smarthosts and DNS ordering. I could just add yet another location - testbox, or something - allocate a block of IP
+space and then add some extra indirection. And then I could do that again for each person and/or project that wanted to
+run up a test-rig. At which point one has just run into a behaviour pattern that should probably be named 'It's OK, I
+can fix that for you.'</p>
+
+<p>I first came across this in, er, 1991 when doing some NHS-related coding. One of the other chaps had written a thing
+which had to deal with, oh I don't know, ten items or something. Because he was a forward-thinking sort, he allocated
+sixteen slots in his array and beetled off all smug for a coffee and a corned beef sandwich. As you might expect, a few
+months later one site or other had a list of seventeen items and a bug report. 'It's OK, I can fix that for you!' went
+our chap and expanded the array to the clearly ludicrous value of some twenty-three slots...</p>
+
+<p>There's scope for an Eric Berne knockoff book of tiresome technical behaviour antipatterns, isn't there?</p>
+
+<p>Anyway, I'm using DHCP, and I wanted the entire edifice to work with little or no extra typing.</p>
+
+<p>CoreOS's <a href="https://github.com/coreos/etcd">ETCD</a> looked like a good fit. Emit salient facts to etcd database when bringing up (say) redis master, then
+query same via <a href="https://github.com/garethr/hiera-etcd">Garethr's hiera-etcd</a> when bringing up the slave. Profit!</p>
+
+<p>That bit did take a little tinkering to get right.</p>
+
+<p>It seems to me that the notion of a reactive puppet configuration is really rather interesting. Other people may well be
+screaming in terror and jabbering about things like 'deadly embrace' and 'terrible feedback loops are fine for the Jesus
+and Mary Chain (Or A Place to Bury Strangers if that's too retro for you) but have no place in a theoretically stable
+configuration.' However, just as a top-down decision process enforced by rigid hierarchy is a hateful idea for a
+workplace environment, so it is for a machine environment.</p>
+
+<p>TL;DR - code in <a href="https://github.com/FuturePublishing/model-village">Github</a>, patches welcome.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Treating people like dicks (distance learning edition)]]></title>
+    <link href="http://failcake.github.com/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/"/>
+    <updated>2014-01-15T20:58:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition</id>
+    <content type="html"><![CDATA[<p>Today one of the old Solaris boxes expired. Well, I say 'box' and 'expired'. I mean '1U
+Solaris-X86-what-were-we-thinking machine' and 'fell into maintenance mode while I was eating breakfast'. And, in a
+truly extraordinary amount of digression and rambling, when I say 'what were we thinking' I probably mean 'The kit had
+actually managed to serve MySQL tolerably reliably for some 1500 days.'</p>
+
+<p>I don't know if you lot remember the uptime wars, but they were medium sized in the late nineties. Rather like Sleeper
+or Menswear, but with fewer annoying tunes and rather more waiting around. We learned better as soon as someone equated
+long uptimes with being an obvious target for some bollix with a copy of Metasploit.</p>
+
+<p>Anyway. A machine that hadn't been restarted since it was shoved in a rack, that was host to a pile of Solaris zones.
+What could possibly have gone wrong with that?</p>
+
+<p>It transpired that one set of binary logs or another had experienced a Jolly Interesting Time and had managed to confuse
+the zpool enough that the alleged hypervisor had thrown a strop and gone into maintenance mode. Which, um, <em>okay...</em></p>
+
+<p>Thankfully there are no beard-fondling Solaris types around to tell me that the next move was a Bad Idea, but mucking
+out the disks, clearing maintenance mode and restarting the beast looked to be the least-worst option.</p>
+
+<p>That is until we discover that the running network config had never been written back to various bits of /etc and indeed
+there were no build notes or valid excuses on either the deceased wiki or the somewhat shiny new one.</p>
+
+<p>There now followed a swearing competition.</p>
+
+<p>I suspect that what happened in 2009 was pretty much like what happened this morning. After the eighth or twelfth reboot, the
+people wanting the databases back won over 'I would like to make this network config survive a reboot surely the
+combined wit of the Sun/Oracle doc and three dozen assorted blogs and HOWTOs can't all be missing the vital something
+or other that we can't spot either...'</p>
+
+<p>It's still an unpleasant trick, though.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[There are two hard problems in computer science: caching]]></title>
+    <link href="http://failcake.github.com/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/"/>
+    <updated>2013-10-27T23:18:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching</id>
+    <content type="html"><![CDATA[<p><em>Title stolen from one of the myriad on the internet more cleverer and witty than wot I am. However, Octopress seems to
+have added its own twist, so you'll have to do the rest of the 'joke' yourselves...</em></p>
+
+<p>Years ago, not long after a visit to the Anarchist Bookshop and having become mildly peeved with the names of computers at Previous Employ (The failover pair named after the (in)appropriate Southpark characters, the ones that were funny if you were twelve... Mind, we <em>were</em> all twelve; that was part of the fun. Mind also that our American management decided to call us all 'spanners' because of I don't know what made up terrible morale-boosting exercise. Tip for the MBAs out there - if your entire English team has a fit of the giggles in an 'all hands', you have just said something hysterically inappropriate and they are <em>not</em> going to let on until you have the t-shirts printed), I started naming kit I built after anarchists. I think I got as far as kropotkin and bakunin before the option of voluntary redundancy came up and I followed my political convictions and ran pell-mell towards the £MONEY.</p>
+
+<p>The Americans had something of a sense of humour failure (or actually maybe they didn't in retrospect) and started naming machines nasdaq, bourse et al.</p>
+
+<p>Last year, self &amp; Sam(oth) start calling the notion of Devops, 'anarcho-syndicalism in action'.</p>
+
+<p>Actually, I think he found the reference elsewhere, but it totally struck home because a lot of the alleged problems that the modern middle class while male technocratic elite have to put up with (only decent latte halfway across town, nowhere to dry yr bike kit in the office) are best approached with an eye to Solidarity (with other teams. Don't let 'managers' or 'stakeholders' play at divide and conquer), Direct Action (fix those problems yourselves. You know your environment best. 'Management' 'control' is bollocks) and Worker's Self-Management (do not replicate process with code. Optimise it out. Build the environment in which you wish to work. No-one will do it for you.)</p>
+
+<p>And, obviously, this is a debased and pitiful version of a full-on political movement. Which is generally home to misogynistic rape-apologist dickheads it seems. (Who act like the polis at the first sign of trouble because that's the only model of dissent-management they have. There is a policeman inside all of our heads it must be stopped.)</p>
+
+<p>You may imagine my lack of surprise at discovering a tool called 'Serf' which lives at 'serfdom.io'</p>
+
+<p>Again, that could well be irony so sufficiently advanced that it is indistinguishable from reality. However, such
+Hayek-followers as I have come across didn't hold with that sort of malarkey.</p>
+
+<p>I guess this sort of thinking fits in well with the sort of sods who talk about being 'disruptive' but actually just want other people to provide free services for which they can charge rent.</p>
+
+<p>There's probably another 'talk' in this, but I think it's the sort of thing better done by the likes of Shanley Kane.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[I had that Janov bloke in the back of my cab once]]></title>
+    <link href="http://failcake.github.com/blog/2013/02/24/i-had-that-janov-bloke-in-the-back-of-my-cab-once/"/>
+    <updated>2013-02-24T15:47:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/02/24/i-had-that-janov-bloke-in-the-back-of-my-cab-once</id>
+    <content type="html"><![CDATA[<p>Here's a non-technical thing that's been wandering round my head: brogrammers are more or less exactly what you can
+expect in an environment run by old-school Unix admins. Or rather, they emerged as a species in reaction to an
+environment which itself was a reaction.</p>
+
+<p>I guess I'd better unpack that and provide some material so people can go TL;DR.</p>
+
+<h4>Brogrammers.</h4>
+
+<p>So (i). Brogrammer. You can go look that up on the internet, because that's what sensible people do. If they come across
+a term or statement they're not sure about, they can poke about the internet for a bit, gather information from several
+sources and perhaps come to a useful conclusion. It's not, y'know, <em>required</em>, but it's nice when it happens and makes
+them look much less like dicks than the sort of people who'll just stand there going 'No! <em>Tell</em> me what you mean!'</p>
+
+<p>I would also ask you to go read this: <a href="http://blog.prettylittlestatemachine.com/blog/2013/02/20/what-your-culture-really-says">what your culture really says</a>, because it crystallised (or
+began the process of precipitation or whatever) a lot of what this ramble may or may not be about. I have no particular
+axe to grind with that piece because I am a white English bloke  in my mid forties, and if I've been a participant in
+any of the scenarios listed I've not had the wit to realise it. It rings true, though. True enough that I suspect the
+'if' in that preceding sentence is a 'when'.</p>
+
+<!-- more -->
+
+
+<p>So (ii). Old-school unix admin. There are a set of people out there who have failed to realise that the stories about
+the 'Bastard operater from hell' are <em>parody,</em>  and that the Dilbert comics are a stark and existentialist warning from
+a parallel universe where everything is terrible. More or less exactly like this one, in fact. Worse, there are a
+younger set of people who've found the Usenet groups where the alleged greybeards let off steam by making up stories,
+decided they want to be Unix Admins, but have cargo-culted precisely the wrong set of attributes in order for that to
+happen. More or less like bad Chaos Magick through a wonky mirror.</p>
+
+<h4>Dickheads.</h4>
+
+<p>The end result of this is that you end up with a class of people who cultivate a surly attitude and firmly hold on to
+the idea that they are the only ones in the business who know how to do anything computer-related correctly, and
+because of that no-one should be allowed to fiddle with the servers (or the routers, as we have seen before) because
+through the magic of circular logic they'll do something stupid and this is why we can't have nice things. However,
+since one or other part of the business seems to make money via the act of repeatedly changing the things that are on
+the servers, they will huffily and with much tutting allow carefully vetted changes to be made.</p>
+
+<p>This is not to say that vetting changes is a <em>bad thing</em>, it's just that making it hard for people to change things is
+not a useful substitute for having tested those changes in the first place.</p>
+
+<p>Trying to work with martyrs like that is about as soul-destroying as trying to work with the sort of change-control
+procedure which is merely the same attitude rendered as A Process.</p>
+
+<p>The other thing that happens is that if you treat people like children, they'll act like children. Put in a
+pr0n-blocking web-proxy at work and people will work out how to get around it so they can look at pr0n. It's an applied
+version of 'Well it doesn't say <em>don't</em> put washing-up liquid in the video-recorder'. The point that no-one with an
+interesting and fulfilling job would want to look at pr0n during work hours is lost in sulky justification and 'I'll
+show <em>them</em>' rationalisation.</p>
+
+<p>[ Yes I have worked in shops where the NT blokes had topless-totty screensavers. It's, I don't know, not something that
+sits well with me. ]</p>
+
+<p>So now you've a set of people cast in the role of children, the old-school unix admin falls into the role of
+long-suffering parent: "This server won't manage itself", "Don't leave your logs there", "I'll just clean up /tmp
+myself, shall I?"</p>
+
+<p>For anyone still reading, that is <em>massively</em> dysfunctional.</p>
+
+<p>As an aside, a behaviour pattern that I have noticed <em>a lot</em> is one where J. Random Dev will ask the admin(s) for
+something-or-other (Shiny new webscale tech as mentioned on Hacker News perhaps) and will be told that no they can't
+have that because no-one knows how to support it and had they thought about this other tech that looks a bit more
+scalable? At this point J R Dev strops off to their Project Manager and explains that must have (shiny new webscale
+tech) and that the admins were mean and said no. So the PM soon heaves to in the admin's cube and starts on about
+business-critical functionality and unacceptable delays and if you recognise that as 'If your mum says no, go ask your
+dad' then you win a rather grubby and worn Internets.</p>
+
+<h4>What is to be done?</h4>
+
+<p>Recognising what's going on is a really good start. I'm bound to say that the notion of DevOps culture is as good a
+countermeasure as I have found so far. Other than that, patches welcome. I'm not convinced it's a solvable problem
+without a reasonable cultural shift, and given the state of your organisation you may well not have that opportunity.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A hazelnut in every bite]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite/"/>
+    <updated>2012-04-19T15:20:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite</id>
+    <content type="html"><![CDATA[<p>An obvious question is 'Why on earth bother with all this message-wanging gubbins? Isn't mail and/or SSH good enough for you?' to which the glib answer is 'No it isn't.'</p>
+
+<p>A longer answer involves spotting the really obvious problem in my last post. That is 'Ok, so you've bodged in some code that'll auto-update your live puppetmaster tree on a commit to that repository. What are the chances that said commit is b0rked and causes an epic cake-fail?'</p>
+
+<p>Well, in theory you're committing to a develop branch which only one or two of your machines are following, because that's the entire point of having the dynamic branch rig in the first place. However, PEBCAK happens and perhaps you should have a Jenkins instance that sanity-checks (as much as is possible, anyway) the puppet code that's just been committed.</p>
+
+<p>Hurrah! Problem solved! Let's have one of those!</p>
+
+<p>I don't know how you'd plumb something like that into another environment, but this is how it works here:</p>
+
+<ul>
+<li>Configure the stomp-jenkins daemon to listen for <em>puppet-environments</em> commits on <em>future.git.commits</em> (c0dez available in the usual place)</li>
+<li><a href="http://vstone.eu/puppet-modules-in-jenkins/">Configure Jenkins for Puppet and puppet-lint</a></li>
+<li>Configure Jenkins to emit a message on (say) <em>future.jenkins.success</em> if the tests pass. (c0dez for that available ditto)</li>
+<li>Configure the stomp-git daemon on your puppetmaster to listen on <em>future.jenkins.success</em></li>
+<li>Er, <em>profit.</em></li>
+</ul>
+
+
+<p>Obviously enough, chaining in extra bits or constructing side-chains is relentlessly trivial.</p>
+
+<p>You could probably do it with a massive make or rake file, too.</p>
+]]></content>
+  </entry>
+  
+</feed>

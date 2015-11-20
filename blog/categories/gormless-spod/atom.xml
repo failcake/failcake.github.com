@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: gormless spod | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/gormless-spod/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Actually just testing something else]]></title>
+    <link href="http://failcake.github.com/blog/2012/10/23/actually-just-testing-something-else/"/>
+    <updated>2012-10-23T14:21:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/10/23/actually-just-testing-something-else</id>
+    <content type="html"><![CDATA[<p>You'd think, after all this time, that I could bosh things together and have them perform some semblance of useful work, right?</p>
+
+<p>You'd <em>think...</em></p>
+
+<p>... Argh. '-' characters in directory names? Surely not...</p>
+]]></content>
+  </entry>
+  
+</feed>

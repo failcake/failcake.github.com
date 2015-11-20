@@ -1,0 +1,1014 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Devops malarkey]]></title>
+  <link href="http://failcake.github.com/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Tumbleweed]]></title>
+    <link href="http://failcake.github.com/blog/2015/11/20/tumbleweed/"/>
+    <updated>2015-11-20T20:45:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2015/11/20/tumbleweed</id>
+    <content type="html"><![CDATA[<p>&#8230; And then everbody left.</p>
+
+<p>I could write a thing about burnout, but I was too fried to notice when it happened. The interesting/exciting/disturbing
+thing about being properly stressed is that becomes entirely normal and you only realise something is broken when the
+music stops. Then all the things in your head that you&#8217;ve been ignoring pitch up at once and are like &#8216;HELLO&#8217; and waving
+cartoon cricket-bats with nails and broken glass embedded.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[re-inventing the wheel - square and on fire]]></title>
+    <link href="http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/"/>
+    <updated>2014-02-07T20:27:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire</id>
+    <content type="html"><![CDATA[<p>I am incompetent and I can&#8217;t make Vagrant work.</p>
+
+<p>At least, that&#8217;s the excuse I&#8217;ve been making for not joining in with the
+rest of the floor in using that for Puppet (among other things) development. Instead, my dev-rig is a VM running as a
+puppetmaster that&#8217;s tracking the changes I make to a given branch in our Git repo via the magic of post-commit hooks and
+another VM in which I can run &#8216;puppet agent &#8211;debug &#8211;blah &#8211;server (first VM)&#8217;. Once in a while I remember to blow away
+the second VM so I can make sure everything builds in the right order. However, even with snapshots it&#8217;s just slightly
+too painful to happen regularly.</p>
+
+<p>Meanwhile, quite a lot of the recent developments at Future have involved rigs of between eight and twelve boxes.
+Generating a worthwhile test/dev version of one of those is rather tiresome because even if you&#8217;ve got the spare
+horsepower lying about, you have to spend yea-long wiring it all together, sanitising the static and/or test data and
+it all quickly gets completely <em>oh god why did i even get out of bed i should have been a farmer like my dad mind you if
+i had done that i&#8217;d have been out of bed at six to go feed the sheep on long barrow bank perhaps not after all&#8230;</em></p>
+
+<p>So when a mildly broken Dell R620 arrived back from one of the DCs coincidentally with me wanting to have a play with
+this Docker business, it all seemed a bit convenient.</p>
+
+<p>I am incompetent and I can&#8217;t make Docker work. On Debian.</p>
+
+<p><a href="http://linuxcontainers.org/">LXC</a>, on the other hand, was slightly simpler than falling off a log.</p>
+
+<p>Given that it&#8217;s simple to build a puppetmaster that&#8217;s the same as one of the live ones, and that all the machine config
+I currently care about is in a manifest, it should be pretty easy to generate a container and have it puppet itself up
+tolerably quickly.</p>
+
+<p>This indeed turned out to be the case. However, having to hand-allocate IP addresses and fiddle about with container
+naming such that they picked up the configs in use on the live rig was all a bit too hands-on and really not what I
+wanted.</p>
+
+<p><a href="http://www.thekelleys.org.uk/dnsmasq/doc.html">DNSMasq</a> fixed the first problem. It is a surprisingly useful tool.</p>
+
+<p>A rakefile which read a list of made-up machine names, generated softlinks to the actual hiera node configs and then
+instantiated the relevant containers fixed the second.</p>
+
+<p>I also spent <em>quite some time</em> building a Wheezy &#8216;image&#8217; that minimised apt-get as much as possible.</p>
+
+<p>Result - fully puppeted containers come up in circa a minute. Somewhat longer if you have to install PHP.
+If I didn&#8217;t have quite such a rational hatred of golden images and all who sail in them, it would likely be faster
+still.</p>
+
+<p>The next part is a bit fiddly.</p>
+
+<p>The example problem I now have is that some parts of my collection of yea-many VMs want to connect to other parts. For
+instance if I have a redis slave, I need to know what the master&#8217;s IP address might be during the puppet run. At Future,
+we generate a location fact and use that in our hiera, er, hierarchy to configure things like message brokers,
+smarthosts and DNS ordering. I could just add yet another location - testbox, or something - allocate a block of IP
+space and then add some extra indirection. And then I could do that again for each person and/or project that wanted to
+run up a test-rig. At which point one has just run into a behaviour pattern that should probably be named &#8216;It&#8217;s OK, I
+can fix that for you.&#8217;</p>
+
+<p>I first came across this in, er, 1991 when doing some NHS-related coding. One of the other chaps had written a thing
+which had to deal with, oh I don&#8217;t know, ten items or something. Because he was a forward-thinking sort, he allocated
+sixteen slots in his array and beetled off all smug for a coffee and a corned beef sandwich. As you might expect, a few
+months later one site or other had a list of seventeen items and a bug report. &#8216;It&#8217;s OK, I can fix that for you!&#8217; went
+our chap and expanded the array to the clearly ludicrous value of some twenty-three slots&#8230;</p>
+
+<p>There&#8217;s scope for an Eric Berne knockoff book of tiresome technical behaviour antipatterns, isn&#8217;t there?</p>
+
+<p>Anyway, I&#8217;m using DHCP, and I wanted the entire edifice to work with little or no extra typing.</p>
+
+<p>CoreOS&#8217;s <a href="https://github.com/coreos/etcd">ETCD</a> looked like a good fit. Emit salient facts to etcd database when bringing up (say) redis master, then
+query same via <a href="https://github.com/garethr/hiera-etcd">Garethr&#8217;s hiera-etcd</a> when bringing up the slave. Profit!</p>
+
+<p>That bit did take a little tinkering to get right.</p>
+
+<p>It seems to me that the notion of a reactive puppet configuration is really rather interesting. Other people may well be
+screaming in terror and jabbering about things like &#8216;deadly embrace&#8217; and &#8216;terrible feedback loops are fine for the Jesus
+and Mary Chain (Or A Place to Bury Strangers if that&#8217;s too retro for you) but have no place in a theoretically stable
+configuration.&#8217; However, just as a top-down decision process enforced by rigid hierarchy is a hateful idea for a
+workplace environment, so it is for a machine environment.</p>
+
+<p>TL;DR - code in <a href="https://github.com/FuturePublishing/model-village">Github</a>, patches welcome.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Treating people like dicks (distance learning edition)]]></title>
+    <link href="http://failcake.github.com/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/"/>
+    <updated>2014-01-15T20:58:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition</id>
+    <content type="html"><![CDATA[<p>Today one of the old Solaris boxes expired. Well, I say &#8216;box&#8217; and &#8216;expired&#8217;. I mean &#8216;1U
+Solaris-X86-what-were-we-thinking machine&#8217; and &#8216;fell into maintenance mode while I was eating breakfast&#8217;. And, in a
+truly extraordinary amount of digression and rambling, when I say &#8216;what were we thinking&#8217; I probably mean &#8216;The kit had
+actually managed to serve MySQL tolerably reliably for some 1500 days.&#8217;</p>
+
+<p>I don&#8217;t know if you lot remember the uptime wars, but they were medium sized in the late nineties. Rather like Sleeper
+or Menswear, but with fewer annoying tunes and rather more waiting around. We learned better as soon as someone equated
+long uptimes with being an obvious target for some bollix with a copy of Metasploit.</p>
+
+<p>Anyway. A machine that hadn&#8217;t been restarted since it was shoved in a rack, that was host to a pile of Solaris zones.
+What could possibly have gone wrong with that?</p>
+
+<p>It transpired that one set of binary logs or another had experienced a Jolly Interesting Time and had managed to confuse
+the zpool enough that the alleged hypervisor had thrown a strop and gone into maintenance mode. Which, um, <em>okay&#8230;</em></p>
+
+<p>Thankfully there are no beard-fondling Solaris types around to tell me that the next move was a Bad Idea, but mucking
+out the disks, clearing maintenance mode and restarting the beast looked to be the least-worst option.</p>
+
+<p>That is until we discover that the running network config had never been written back to various bits of /etc and indeed
+there were no build notes or valid excuses on either the deceased wiki or the somewhat shiny new one.</p>
+
+<p>There now followed a swearing competition.</p>
+
+<p>I suspect that what happened in 2009 was pretty much like what happened this morning. After the eighth or twelfth reboot, the
+people wanting the databases back won over &#8216;I would like to make this network config survive a reboot surely the
+combined wit of the Sun/Oracle doc and three dozen assorted blogs and HOWTOs can&#8217;t all be missing the vital something
+or other that we can&#8217;t spot either&#8230;&#8217;</p>
+
+<p>It&#8217;s still an unpleasant trick, though.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Short commercial break]]></title>
+    <link href="http://failcake.github.com/blog/2013/10/28/short-commercial-break/"/>
+    <updated>2013-10-28T23:24:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/10/28/short-commercial-break</id>
+    <content type="html"><![CDATA[<p><em>Trigger warning: contains talk of horrible old Unix kit running horrible old Unix</em></p>
+
+<p>There&#8217;s a good chance I&#8217;m probably a massive arsehole and I get paid for it. Which, I dunno, maybe I&#8217;m supposed to be
+pleased with myself about it because being <em>disruptive</em> is seen as a good thing these days. The last time I came across
+people being described as such, they were the hyperactive (or just sugared-up) kids at junior school who seemed to be
+convinced that it was all about them and if it wasn&#8217;t they&#8217;d throw a massive strop and wander round with a lower lip
+hung out like a soup-plate. I&#8217;m assuming a <em>disruptive technology</em> doesn&#8217;t have a howling fit in the middle of the
+organic vegetable section of the supermarket if it doesn&#8217;t get its own way, but then I wouldn&#8217;t be surprised if it did.</p>
+
+<p>The thing about the arseholedom isn&#8217;t malevolent in the slightest, it&#8217;s more a case of going up to someone and asking
+them why they&#8217;re nailing their legs to the table. You get this very weird selection of looks when you do things like
+that. As if they&#8217;re expecting you to come up with something sarcastic about using the contact adhesive on the shelf.
+Then they&#8217;ll say something like &#8216;Well we&#8217;ve <em>always</em> nailed our legs to the table in this department because it keeps
+the bees from flying to Winchcombe.&#8217; Which, um, <em>okay&#8230;</em></p>
+
+<p>I mean, there&#8217;s no answer to that. Especially when some manager piles out of the end office going &#8220;D&#8217;you want the bees
+to go to Winchcombe? Do you? Because that&#8217;s what&#8217;s going to happen if you don&#8217;t buck your ideas up and crack on with
+that hammering.&#8221;</p>
+
+<p>But you have to try. You point to one of the chairs in the corner and suggest that using those would be much less
+unpleasant. That&#8217;s when the trouble <em>really</em> starts. The manager goes pop-eyed and kicks off about &#8216;You smart buggers in
+IT think you know everything coming down here with your <em>ideas</em> I don&#8217;t have time for <em>ideas</em> there&#8217;s barely enough time
+to send Bob here down to the hardware shop for more nails, what with the bleeding and the Tetanus jabs and now you want
+us to cross-train to <em>chairs</em> I&#8217;m glad you think we all sit around with glue-guns like you wasters someone should sort
+you lot out once and for all.&#8217;</p>
+
+<p>So you pull a chair over and they look at you like you just shat out a railway station.</p>
+
+<p>What this is really about is that years ago (HP-UX 10.20 ago, in fact) I was given a HP9000 to look after. In poking
+around the filesystem to see what dreadful sort of albatross I&#8217;d been handed, I found a whole pile of cron-jobs that ran
+scripts to monitor sendmail and some more scripts that re-started sendmail and further scripts that tested the state of
+earlier scripts. It all seemed a bit pointless because even then sendmail could more or less be left alone to generate
+remote root exploits and sometimes deliver mail.</p>
+
+<p>I asked one of the longer-serving chaps and he came over all leg-nailing. Apparently it wasn&#8217;t to be touched because
+sendmail was dreadfully unreliable and crashed every half hour.</p>
+
+<p>I nodded, smiled and went off to throw away all the junk and upgrade the sendmail install to $latest.</p>
+
+<p>It didn&#8217;t crash.</p>
+
+<p>The point being that writing long-lived daemon processes is really very well known science and instead of mucking about
+with multiple layers of monitoring and backup, you&#8217;re much better off making the daemon work right.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[There are two hard problems in computer science: caching]]></title>
+    <link href="http://failcake.github.com/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/"/>
+    <updated>2013-10-27T23:18:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching</id>
+    <content type="html"><![CDATA[<p><em>Title stolen from one of the myriad on the internet more cleverer and witty than wot I am. However, Octopress seems to
+have added its own twist, so you&#8217;ll have to do the rest of the &#8216;joke&#8217; yourselves&#8230;</em></p>
+
+<p>Years ago, not long after a visit to the Anarchist Bookshop and having become mildly peeved with the names of computers at Previous Employ (The failover pair named after the (in)appropriate Southpark characters, the ones that were funny if you were twelve&#8230; Mind, we <em>were</em> all twelve; that was part of the fun. Mind also that our American management decided to call us all &#8216;spanners&#8217; because of I don&#8217;t know what made up terrible morale-boosting exercise. Tip for the MBAs out there - if your entire English team has a fit of the giggles in an &#8216;all hands&#8217;, you have just said something hysterically inappropriate and they are <em>not</em> going to let on until you have the t-shirts printed), I started naming kit I built after anarchists. I think I got as far as kropotkin and bakunin before the option of voluntary redundancy came up and I followed my political convictions and ran pell-mell towards the £MONEY.</p>
+
+<p>The Americans had something of a sense of humour failure (or actually maybe they didn&#8217;t in retrospect) and started naming machines nasdaq, bourse et al.</p>
+
+<p>Last year, self &amp; Sam(oth) start calling the notion of Devops, &#8216;anarcho-syndicalism in action&#8217;.</p>
+
+<p>Actually, I think he found the reference elsewhere, but it totally struck home because a lot of the alleged problems that the modern middle class while male technocratic elite have to put up with (only decent latte halfway across town, nowhere to dry yr bike kit in the office) are best approached with an eye to Solidarity (with other teams. Don&#8217;t let &#8216;managers&#8217; or &#8216;stakeholders&#8217; play at divide and conquer), Direct Action (fix those problems yourselves. You know your environment best. &#8216;Management&#8217; &#8216;control&#8217; is bollocks) and Worker&#8217;s Self-Management (do not replicate process with code. Optimise it out. Build the environment in which you wish to work. No-one will do it for you.)</p>
+
+<p>And, obviously, this is a debased and pitiful version of a full-on political movement. Which is generally home to misogynistic rape-apologist dickheads it seems. (Who act like the polis at the first sign of trouble because that&#8217;s the only model of dissent-management they have. There is a policeman inside all of our heads it must be stopped.)</p>
+
+<p>You may imagine my lack of surprise at discovering a tool called &#8216;Serf&#8217; which lives at &#8216;serfdom.io&#8217;</p>
+
+<p>Again, that could well be irony so sufficiently advanced that it is indistinguishable from reality. However, such
+Hayek-followers as I have come across didn&#8217;t hold with that sort of malarkey.</p>
+
+<p>I guess this sort of thinking fits in well with the sort of sods who talk about being &#8216;disruptive&#8217; but actually just want other people to provide free services for which they can charge rent.</p>
+
+<p>There&#8217;s probably another &#8216;talk&#8217; in this, but I think it&#8217;s the sort of thing better done by the likes of Shanley Kane.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Giving stuff away on the internet is probably a good thing.]]></title>
+    <link href="http://failcake.github.com/blog/2013/06/28/giving-stuff-away-on-the-internet-is-probably-a-good-thing/"/>
+    <updated>2013-06-28T16:51:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2013/06/28/giving-stuff-away-on-the-internet-is-probably-a-good-thing</id>
+    <content type="html"><![CDATA[<p>For reasons that will become sadly apparent when these posts are read in the wrong order, I&#8217;ve been engaged in the job of interviewing people who&#8217;ve expressed interest in the notion of coming to work for Future. At least one of those people was keen to point out that they&#8217;d been looking at our code on Github and was keen to come along and play with it.</p>
+
+<p>Which was nice.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Small parts isolated and deployed]]></title>
+    <link href="http://failcake.github.com/blog/2013/03/22/small-parts-isolated-and-deployed/"/>
+    <updated>2013-03-22T22:41:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/03/22/small-parts-isolated-and-deployed</id>
+    <content type="html"><![CDATA[<p>It seems that one of the things that people new to Puppet (and sometimes by extension, automated CD/CI rigs) try to do
+is brickhammer their existing deployment chains into the thing. You can go look at the mailing list and about once a
+week, someone will go &#8216;I need Puppet to manage this thumping great source directory which we will distribute to
+$list-of-servers and then build in situ. How do I make Puppet do a <em>./configure &amp;&amp; make &amp;&amp; make install?&#8217;</em></p>
+
+<p>To which the answer is &#8216;No.&#8217; and the answer to <em>that</em> is stropping because $reasons.</p>
+
+<p>If you or your organisation still want to do that sort of thing, my suggestion is that you bin the terrible Unix systems
+you&#8217;re using and try one of the many free (or indeed expensive) versions that come with 1990s features like a
+package-management system. Mind, if you&#8217;re using Gentoo for production systems then I can&#8217;t help you. Please stop
+reading there is nothing for you here.</p>
+
+<p>Of course you can&#8217;t package up everything you might wish to bung on a server from a distance. There are also going to be
+rules-lawyers hunting out corner cases in order to prove me wrong. Which, I don&#8217;t know, seems to be the broken behaviour
+patterns of those who&#8217;re somehow proud of keeping some ancient and spavined code-management technique alive into the
+C21st. Don&#8217;t do that either, you&#8217;re just making you own life hard. Or you&#8217;re working for an organisation ditto and why
+are you doing that?</p>
+
+<p>Our own rules are entirely arbitrary and look like this:</p>
+
+<p>Rebuilt Debian packages and/or backports and/or wonky Ruby code that has a config file and an initscript are served as
+.debs from our own repo. Building your own Debian repository is desperately simple.</p>
+
+<p>Website code is managed through the magic of git, or the nearly-magic of svn. Not via puppet. The site furniture is
+instantiated via some puppet, but deploys happen via MCollective. Sinatra-based webapps also fit here, even though
+they&#8217;re wonky Ruby code with config files and initscripts. We may fix this. Or not. Who can say?</p>
+
+<p>Tomcat apps are emitted from the end of a Jenkins-based chain and largely manage themselves. Getting Puppet involved
+just seems to confuse things.</p>
+
+<p>The new special case that prompted this ramble is a Java app that&#8217;s going to sit on some edge servers. The last thing
+that happens in that Jenkins chain is that the app is packaged up as a .deb. Ok, a Java-style .deb, so the file-layout
+would make a Debian packager shit themselves with hatred, but still. Since our package generation has been mostly &#8216;by
+hand&#8217; up until now, I&#8217;d never bothered with hacking up the auto-upload bits of reprepro. For the Jenkins stuff to work
+properly, I had to fix that. Thus when there&#8217;s a new build of the Java app, it appears moments later (depending on
+cronjob) in our Debian repository.</p>
+
+<p>At that point, I thought it would be a good thing to have the repository-uploader send a message to the event-logger so
+we could see that there was a new version of code and something should probably be done about it. Not long after that, I
+realised that the &#8216;something&#8217; might as well be automated, too. So actually, the repository-uploader will emit a message
+to a relevant topic on our message-bus, which will trigger an &#8216;apt-get update&#8217; on the servers where that app is
+installed. If we&#8217;re feeling brave and the Puppet code that manages the app has &#8216;ensure => latest&#8217; in the package
+statement, then they&#8217;ll go on and install that newly updated version.</p>
+
+<p>Which is kind of exactly the behaviour one would expect from a continuous deployment rig.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[I had that Janov bloke in the back of my cab once]]></title>
+    <link href="http://failcake.github.com/blog/2013/02/24/i-had-that-janov-bloke-in-the-back-of-my-cab-once/"/>
+    <updated>2013-02-24T15:47:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/02/24/i-had-that-janov-bloke-in-the-back-of-my-cab-once</id>
+    <content type="html"><![CDATA[<p>Here&#8217;s a non-technical thing that&#8217;s been wandering round my head: brogrammers are more or less exactly what you can
+expect in an environment run by old-school Unix admins. Or rather, they emerged as a species in reaction to an
+environment which itself was a reaction.</p>
+
+<p>I guess I&#8217;d better unpack that and provide some material so people can go TL;DR.</p>
+
+<h4>Brogrammers.</h4>
+
+<p>So (i). Brogrammer. You can go look that up on the internet, because that&#8217;s what sensible people do. If they come across
+a term or statement they&#8217;re not sure about, they can poke about the internet for a bit, gather information from several
+sources and perhaps come to a useful conclusion. It&#8217;s not, y&#8217;know, <em>required</em>, but it&#8217;s nice when it happens and makes
+them look much less like dicks than the sort of people who&#8217;ll just stand there going &#8216;No! <em>Tell</em> me what you mean!&#8217;</p>
+
+<p>I would also ask you to go read this: <a href="http://blog.prettylittlestatemachine.com/blog/2013/02/20/what-your-culture-really-says">what your culture really says</a>, because it crystallised (or
+began the process of precipitation or whatever) a lot of what this ramble may or may not be about. I have no particular
+axe to grind with that piece because I am a white English bloke  in my mid forties, and if I&#8217;ve been a participant in
+any of the scenarios listed I&#8217;ve not had the wit to realise it. It rings true, though. True enough that I suspect the
+&#8216;if&#8217; in that preceding sentence is a &#8216;when&#8217;.</p>
+
+<!-- more -->
+
+
+<p>So (ii). Old-school unix admin. There are a set of people out there who have failed to realise that the stories about
+the &#8216;Bastard operater from hell&#8217; are <em>parody,</em>  and that the Dilbert comics are a stark and existentialist warning from
+a parallel universe where everything is terrible. More or less exactly like this one, in fact. Worse, there are a
+younger set of people who&#8217;ve found the Usenet groups where the alleged greybeards let off steam by making up stories,
+decided they want to be Unix Admins, but have cargo-culted precisely the wrong set of attributes in order for that to
+happen. More or less like bad Chaos Magick through a wonky mirror.</p>
+
+<h4>Dickheads.</h4>
+
+<p>The end result of this is that you end up with a class of people who cultivate a surly attitude and firmly hold on to
+the idea that they are the only ones in the business who know how to do anything computer-related correctly, and
+because of that no-one should be allowed to fiddle with the servers (or the routers, as we have seen before) because
+through the magic of circular logic they&#8217;ll do something stupid and this is why we can&#8217;t have nice things. However,
+since one or other part of the business seems to make money via the act of repeatedly changing the things that are on
+the servers, they will huffily and with much tutting allow carefully vetted changes to be made.</p>
+
+<p>This is not to say that vetting changes is a <em>bad thing</em>, it&#8217;s just that making it hard for people to change things is
+not a useful substitute for having tested those changes in the first place.</p>
+
+<p>Trying to work with martyrs like that is about as soul-destroying as trying to work with the sort of change-control
+procedure which is merely the same attitude rendered as A Process.</p>
+
+<p>The other thing that happens is that if you treat people like children, they&#8217;ll act like children. Put in a
+pr0n-blocking web-proxy at work and people will work out how to get around it so they can look at pr0n. It&#8217;s an applied
+version of &#8216;Well it doesn&#8217;t say <em>don&#8217;t</em> put washing-up liquid in the video-recorder&#8217;. The point that no-one with an
+interesting and fulfilling job would want to look at pr0n during work hours is lost in sulky justification and &#8216;I&#8217;ll
+show <em>them</em>&#8217; rationalisation.</p>
+
+<p>[ Yes I have worked in shops where the NT blokes had topless-totty screensavers. It&#8217;s, I don&#8217;t know, not something that
+sits well with me. ]</p>
+
+<p>So now you&#8217;ve a set of people cast in the role of children, the old-school unix admin falls into the role of
+long-suffering parent: &#8220;This server won&#8217;t manage itself&#8221;, &#8220;Don&#8217;t leave your logs there&#8221;, &#8220;I&#8217;ll just clean up /tmp
+myself, shall I?&#8221;</p>
+
+<p>For anyone still reading, that is <em>massively</em> dysfunctional.</p>
+
+<p>As an aside, a behaviour pattern that I have noticed <em>a lot</em> is one where J. Random Dev will ask the admin(s) for
+something-or-other (Shiny new webscale tech as mentioned on Hacker News perhaps) and will be told that no they can&#8217;t
+have that because no-one knows how to support it and had they thought about this other tech that looks a bit more
+scalable? At this point J R Dev strops off to their Project Manager and explains that must have (shiny new webscale
+tech) and that the admins were mean and said no. So the PM soon heaves to in the admin&#8217;s cube and starts on about
+business-critical functionality and unacceptable delays and if you recognise that as &#8216;If your mum says no, go ask your
+dad&#8217; then you win a rather grubby and worn Internets.</p>
+
+<h4>What is to be done?</h4>
+
+<p>Recognising what&#8217;s going on is a really good start. I&#8217;m bound to say that the notion of DevOps culture is as good a
+countermeasure as I have found so far. Other than that, patches welcome. I&#8217;m not convinced it&#8217;s a solvable problem
+without a reasonable cultural shift, and given the state of your organisation you may well not have that opportunity.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Finding places to put things]]></title>
+    <link href="http://failcake.github.com/blog/2012/12/28/finding-places-to-put-things/"/>
+    <updated>2012-12-28T23:31:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2012/12/28/finding-places-to-put-things</id>
+    <content type="html"><![CDATA[<p>I suspect this blog-thing will just contain sporadic apologies for lack of content for most of its lifetime.</p>
+
+<p>Anyway.</p>
+
+<p>This time the excuses have been brought to you by the words &#8216;fail&#8217;, &#8216;power&#8217;, &#8216;generator&#8217;, &#8216;contactor&#8217;, &#8216;250A supply&#8217;,
+&#8216;melted&#8217; and the phrases &#8216;boot that filer from a different Vol0&#8217;, &#8216;can you smell smoke?&#8217; and &#8216;Oh hell not again&#8217;.</p>
+
+<p>As you might imagine, it&#8217;s been busy and the DR plan has been tested and found interesting.</p>
+
+<p>We&#8217;re still Barberising and Hiera-ing up our shonky collection of Puppet modules. I&#8217;d say that they&#8217;re getting less
+shonky by the day, but it&#8217;s taking longer than that. I hesitate to talk about &#8216;patterns&#8217;, because&#8230; Actually, I think
+that&#8217;s an example of self-taught-hacker anti-intellectualism, which is an equal amount of rubbish as its opposite.</p>
+
+<p>So. The Barberis(ing|ed) pattern is a fine thing and, when used in combination with the wonder that is Hiera, allows us
+to do more things in simpler code.</p>
+
+<p>However. One of the modules that I&#8217;d been putting off refactoring (so &#8216;patterns&#8217; are suspect but &#8216;refactoring&#8217; is fine,
+eh?) was the one that manages our NSD install and thus the DNS for quite a number of domains, some of which contain
+rather popular websites.</p>
+
+<p><a href="http://www.nlnetlabs.nl/projects/nsd/">NSD is the authoritative-only nameserver daemon written by NLNet Labs</a>, who are a top bunch of chaps. We abandoned Bind
+after there were one too many vulnerability notices.</p>
+
+<p>I&#8217;d been putting off the work because the v0.1 module just drops the entirety of the zone-files directory under
+../files/ and lets Puppet do the work of synchronising the files across the nameservers. It&#8217;s not as if it&#8217;s a terrible
+thing to do at first glance - Puppet&#8217;s file-serving means you can stop faffing with hand-brewed rsync scripts for
+managing the out-of-band DNS data, and if you&#8217;ve got your Puppet tree in a sensible SCM, you get version control &#8216;for
+free&#8217;.</p>
+
+<p>However (again), great lumps of org-specific data like that shouldn&#8217;t really, we are told, be held within the module
+tree. It&#8217;s not necessarily obvious where the data should go, though. Nor is it terribly obvious how you connect it back
+to the Puppet module and have changes in the one signal the other to perform tasks.</p>
+
+<p>Well, it is if you look at the right corners of the Internet, but this thing is mostly me groping around and trying
+stuff out as a warning to others.</p>
+
+<p>NSD installation and management goes in the now-Barberised NSD module.</p>
+
+<p>This also deposits code that rebuilds the NSD config file when a domain is added or removed. And indeed the out-of-band
+master list of domains, which semi-obviously has to travel separately from the zonefiles for $reasons.</p>
+
+<p>(It&#8217;s about this time that someone-who-is-not-me would be going &#8216;Why isn&#8217;t all this domain gubbins in a nice database
+somewhere, then all zone maintenance would be a simple &#8216;SELECT mumble FROM yinglebart WHERE tewkesbury ISNT something&#8221;,
+which would be very shortly before I hauled out the sarcasm throwing machine.)</p>
+
+<p>The zonefiles live in a git repo of their own. That repo is cloned down onto the master DNS server(s) and kept current via the
+magic of post-commit hooks. Meanwhile, there&#8217;s a file resource in the NSD module which looks like this:</p>
+
+<pre><code>file { '/var/lib/nsd3/.git/HEAD':
+  audit   =&gt; content,
+  notify  =&gt; Exec['rebuild'],
+}
+
+exec { 'rebuild':
+  command     =&gt; '/etc/nsd3/code/refresh.sh',
+  refreshonly =&gt; true,
+}
+</code></pre>
+
+<p>&#8230; Which is lifted wholesale from
+<a href="https://github.com/jordansissel/puppet-examples/tree/master/unmanaged-file-notify">here.</a> Either we&#8217;ve found one of the non-terrible use cases for this hack, or I&#8217;ll be
+writing another rambling post in a few months when I&#8217;ve had a better idea.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Actually just testing something else]]></title>
+    <link href="http://failcake.github.com/blog/2012/10/23/actually-just-testing-something-else/"/>
+    <updated>2012-10-23T14:21:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/10/23/actually-just-testing-something-else</id>
+    <content type="html"><![CDATA[<p>You&#8217;d think, after all this time, that I could bosh things together and have them perform some semblance of useful work, right?</p>
+
+<p>You&#8217;d <em>think&#8230;</em></p>
+
+<p>&#8230; Argh. &#8216;-&#8217; characters in directory names? Surely not&#8230;</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Leveraged neatness is not always your friend]]></title>
+    <link href="http://failcake.github.com/blog/2012/09/11/leveraged-ocd-is-not-always-your-friend/"/>
+    <updated>2012-09-11T15:19:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/09/11/leveraged-ocd-is-not-always-your-friend</id>
+    <content type="html"><![CDATA[<p>I must begin by apologising for using the word &#8216;leveraged&#8217;. It&#8217;s terrible
+ marketing-speak. However, it mostly fits in context and anyway I am using
+ it in an ironic sense. (not that that&#8217;s even a valid excuse for the likes
+ of me, but there you go.)</p>
+
+<p>There are certain aspects of the admin trades where semi-obsessive neatness
+and/or attention to detail are useful things to have. It&#8217;s one of the times
+where not being able to leave the house without checking that you&#8217;ve turned the
+gas off twice and locked the front door three times can be a positive thing to
+admit in an interview. [NB: Self-deprecating hyperbole.]</p>
+
+<p>It can also lead to the sort of unfortunate failure-modes that if you&#8217;re lucky
+you&#8217;re not familiar with.</p>
+
+<p>(This was all kicked off by one of the network guys asking me some hard
+questions about the nature of packaging and dependencies, which set me off on a
+bit of a ramble. Thus network types get it first. Beard-fondling admins get
+their kicking later.)</p>
+
+<!-- more -->
+
+
+<p>Twice now, I&#8217;ve been in jobs where the greater part of the network has been
+rebuilt. If you imagine <em>everything</em> being lifted up while new wires are
+plumbed in by a selection of blokes with disturbing arsecracks, then you&#8217;d not
+be far wrong. Towards the end of the work, the relevant network manager has
+(metaphorically) straightened up, dusted off their hands and declared the task
+complete. And then the terrible oiks in charge of the servers have started
+migrating services to the shiny new bits of wire, to discover that only about a
+third of the routes are in place and next to none of the odd ports required to
+make the databases work or sodding undocumented OSX distributed p/w malarkey.
+Thus there&#8217;s a sudden pile of change-requests (or an aggrieved queue next to
+the network manager&#8217;s cube) followed by quite a lot of grousing about &#8216;making
+my nice clean network diagram all complicated with your filthy packets and
+honestly why are you people even <em>using</em> Oracle?&#8217;</p>
+
+<p>Which, um, yes.</p>
+
+<p>Meanwhile, there used to be one of those Rules of Thumb that became
+over-generalised by people who were massively missing the point on purpose. It
+went along the lines of &#8216;the process-list on your unix box should only be about
+a screen long, and if you don&#8217;t <em>know</em> what the various jobs are doing and
+which ports they&#8217;re using, disable them.</p>
+
+<p>That&#8217;s actually sensible behaviour if you&#8217;re talking about some hateful SysV
+box that&#8217;s acting as a firewall or bastion host back in the old days when
+Solaris was a relevant OS (Pre Y2K) and everything came with inetd enabled with
+the tiresome daemons that no-one understood. (ticotsord? Daft name for anything
+that&#8217;s not a planet in a space-trading MMO.)</p>
+
+<p>However, it&#8217;s only going to make everyone else hate you if you drag that
+attitude along into the world of Linux distros and try to out-stubborn the
+package-manager. Don&#8217;t do that. I know that sinking feeling when I see the
+resulting trail of gubbins that gets hauled in like tin cans on string
+following the bride &amp; groom&#8217;s car in a Carry-on film when I type &#8216;apt-get
+install default-jre&#8217;, and I have learned to let it go.</p>
+
+<p>Not letting that sort of thing go ends in something like &#8216;And that, your
+honour, is when I decided to create my own Linux distribution&#8230;&#8217;</p>
+
+<p>It happens in tool-building, too. One of the things I half-promised myself was
+that the stomp-git daemon would never do anything careless with the
+repositories. All it would do is a &#8216;git fetch&#8217; and anything further would be
+under the control of a carbon-unit. That was a splendid plan until I discovered
+that actually I needed the thing to keep a Puppetmaster tree in sync behind a
+firewall. Well, ok. That&#8217;s a special mode which requires a specific
+command-line option which is well documented in the config file and the
+initscript.</p>
+
+<p>Then I needed to keep a hieradata tree in sync across two puppetmasters, and an
+(this!) Octopress install working, and it turned out that some rearranging of
+the config file made the code less worse and the ease of doing dangerous thing
+more better.</p>
+
+<p>I&#8217;m not sure how I feel about that. It&#8217;s made several things really quite
+trivial, but it really doesn&#8217;t sit well with me.</p>
+
+<p>Funny business, code.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[EMFcamp]]></title>
+    <link href="http://failcake.github.com/blog/2012/09/05/emfcamp/"/>
+    <updated>2012-09-05T21:25:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/09/05/emfcamp</id>
+    <content type="html"><![CDATA[<p>For reasons that seemed jolly sensible at the time (ie - someone dared me to do it) I gave
+a much-modified version of The Puppetcamp Talk at <a href="https://www.emfcamp.org/">EMFcamp</a>. Modified in that it was four
+months later and we&#8217;d made some things work better, abandoned others and had some mostly-bright
+ideas for new stuff.</p>
+
+<p>Thus linked here somewhere should be <a href="http://failcake.github.com/downloads/emfcamp.pdf">the PDF version of the slides</a>, which because I am that sort of
+forward-thinking sod (actually, I&#8217;d seen this be a requirement at 28c3, and it seemed sensible, so&#8230;)
+was the version I presented because the Nice People didn&#8217;t have the relevent podule to connect a Macbook
+to the big screen in the tent.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[In which there is silence and excuses for same]]></title>
+    <link href="http://failcake.github.com/blog/2012/09/05/in-which-there-is-silence-and-excuses-for-same/"/>
+    <updated>2012-09-05T19:48:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/09/05/in-which-there-is-silence-and-excuses-for-same</id>
+    <content type="html"><![CDATA[<p>Hello. Where on earth did the last few months go? I guess I could blame it having been
+Grand Tour season (the Giro, the Tour and now the Vuelta) which has meant that I&#8217;ve been
+watching sweaty men in lycra pedal up the sides of mountains for three weeks at a time.</p>
+
+<p>I guess I can also blame one of those periods when several mildly concerning things
+happen in rapid order like a conspiring mob of buses, and when the smoke clears you&#8217;re
+somewhere grim like Burnt Oak, Oldland Common or Quedgeley.</p>
+
+<p>Anyway. Let&#8217;s see what happens next.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A hazelnut in every bite]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite/"/>
+    <updated>2012-04-19T15:20:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite</id>
+    <content type="html"><![CDATA[<p>An obvious question is &#8216;Why on earth bother with all this message-wanging gubbins? Isn&#8217;t mail and/or SSH good enough for you?&#8217; to which the glib answer is &#8216;No it isn&#8217;t.&#8217;</p>
+
+<p>A longer answer involves spotting the really obvious problem in my last post. That is &#8216;Ok, so you&#8217;ve bodged in some code that&#8217;ll auto-update your live puppetmaster tree on a commit to that repository. What are the chances that said commit is b0rked and causes an epic cake-fail?&#8217;</p>
+
+<p>Well, in theory you&#8217;re committing to a develop branch which only one or two of your machines are following, because that&#8217;s the entire point of having the dynamic branch rig in the first place. However, PEBCAK happens and perhaps you should have a Jenkins instance that sanity-checks (as much as is possible, anyway) the puppet code that&#8217;s just been committed.</p>
+
+<p>Hurrah! Problem solved! Let&#8217;s have one of those!</p>
+
+<p>I don&#8217;t know how you&#8217;d plumb something like that into another environment, but this is how it works here:</p>
+
+<ul>
+<li>Configure the stomp-jenkins daemon to listen for <em>puppet-environments</em> commits on <em>future.git.commits</em> (c0dez available in the usual place)</li>
+<li><a href="http://vstone.eu/puppet-modules-in-jenkins/">Configure Jenkins for Puppet and puppet-lint</a></li>
+<li>Configure Jenkins to emit a message on (say) <em>future.jenkins.success</em> if the tests pass. (c0dez for that available ditto)</li>
+<li>Configure the stomp-git daemon on your puppetmaster to listen on <em>future.jenkins.success</em></li>
+<li>Er, <em>profit.</em></li>
+</ul>
+
+
+<p>Obviously enough, chaining in extra bits or constructing side-chains is relentlessly trivial.</p>
+
+<p>You could probably do it with a massive make or rake file, too.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[One very important thought]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/19/one-very-important-thought/"/>
+    <updated>2012-04-19T12:24:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/19/one-very-important-thought</id>
+    <content type="html"><![CDATA[<p>I have been hacking on stomp-git over the past couple of days. Mostly because there may or may not be a lurking nasty with the way it sometimes stops listening on its, er listen topic, but
+also because it has needed a deal of de-Futuring and general fettling so it doesn&#8217;t make proper coders claw their own faces off in horror.</p>
+
+<p>And because I had forgotten how I&#8217;d made it work when it came to the svn->git rollout of one of our major sites.</p>
+
+<p>Thus it seems as good a time as any to explain how I think it should work and indeed why it works like that.</p>
+
+<!-- more -->
+
+
+<p>The elevator pitch (of sorts) is that if you&#8217;ve got a message-bus that connects all your servers together&#8230;</p>
+
+<p>Actually there wasn&#8217;t an elevator pitch. I think it was a combination of wondering about how one might make deploys faster (and thus less painful),
+implementing <a href="http://hunnur.com/blog/2010/10/dynamic-git-branch-puppet-environments/">Hunter Haugen&#8217;s dynamic git-branching for puppet</a> and making the AMQ rig more reliable because we&#8217;d sold one of the dev teams on the idea of using it for inter-server comms.</p>
+
+<p>What the stomp-git daemon does is subscribe to a topic, in our case named &#8216;future.git.commits&#8217; and if it spots a commit message for a repository it cares about, issues a &#8216;git fetch&#8217; command in order
+to update its local copy of that repo. Thus when it comes time to deploy a site, the relevant tag or branch is already lurking in the git tree and the actual &#8216;git checkout epic-bugfix-4.77&#8217; happens tolerably quickly.</p>
+
+<p>This does involve a selection of scripts and daemons flying in close formation, so I shall attempt to describe the flow of events.</p>
+
+<p>An assumption I made is that there&#8217;s something like gitolite where most of your repositories live and it&#8217;s been configured to emit post-commit messages.</p>
+
+<p>If you&#8217;re using GitHub, they have post-commit hooks that&#8217;ll talk to all sorts of things, and their example Sinatra code is trivially hackable. I&#8217;ll cover that in a later post.</p>
+
+<p>A commit message looks a lot like this:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[spog] refs/heads/master aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>repo: spog
+</span><span class='line'>oldrev: dc01649eee870d1a9f051f046165890c4c5e197d
+</span><span class='line'>newrev: aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>refname: refs/heads/master
+</span><span class='line'> commit aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>Author: John Hawkes-Reed &lt;john.hawkes-reed@futurenet.com>
+</span><span class='line'>Date:   Wed Mar 14 11:55:15 2012 +0000
+</span><span class='line'>
+</span><span class='line'>    bonkle
+</span><span class='line'>
+</span><span class='line'>diff --git a/bonkle b/bonkle
+</span><span class='line'>index 1169e1c..48ee005 100644
+</span><span class='line'>--- a/bonkle
+</span><span class='line'>+++ b/bonkle
+</span><span class='line'>@@ -26,3 +26,4 @@ bonkle
+</span><span class='line'> bonkle
+</span><span class='line'> bonkle
+</span><span class='line'> bonkle
+</span><span class='line'>+bonkle</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&#8230; And if that looks an awful lot like the output from the example post-commit mail, that&#8217;s because I cribbed it wholesale.</p>
+
+<p>The only section that the stomp-git daemon is looking for is the &#8216;repo: spog&#8217; line. The rest is syntactic sugar on the off-chance that someone wants to subscribe to that topic and (say) pass the output to an IRC channel.</p>
+
+<p>Here&#8217;s the YAML config for the stomp-git daemon:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>---
+</span><span class='line'># Corp
+</span><span class='line'>#rserver: failover://(stomp://gituser:gitpass@amq1.domain.com:61613,stomp://gituser:gitpass@amq2.domain.com:61613)
+</span><span class='line'># Co-lo
+</span><span class='line'>rserver: failover://(stomp://othergituser:othergitpass@amq3.otherdomain.net:61613,stomp://othergituser:othergitpass@amq4.otherdomain.net:61613)
+</span><span class='line'>#
+</span><span class='line'># Topics:
+</span><span class='line'>listen-topic: future.git.commits
+</span><span class='line'>report-topic: future.events.stomp-git
+</span><span class='line'>#
+</span><span class='line'># All repo modes badly explained:
+</span><span class='line'># normal: - fetch $repo.
+</span><span class='line'># trusting - fetch $repo, checkout origin/master to $target.
+</span><span class='line'># dangerous - fetch $repo, checkout origin/master.
+</span><span class='line'># puppetmaster - fetch $repo, checkout to $target/$branch. As above.
+</span><span class='line'>#
+</span><span class='line'># Repos below here
+</span><span class='line'>#
+</span><span class='line'>repo-list:
+</span><span class='line'>
+</span><span class='line'>#  example-repo:
+</span><span class='line'>#    user: rubyapps
+</span><span class='line'>#    repo: /data/repos/example
+</span><span class='line'>#    mode: normal
+</span><span class='line'>#
+</span><span class='line'>#  spog:
+</span><span class='line'>#    user: www-data
+</span><span class='line'>#    repo: /data/repos/octopress-site
+</span><span class='line'>#    target: /data/sites/www.my-octopress.co.uk
+</span><span class='line'>#    mode: trusting
+</span><span class='line'>#
+</span><span class='line'>#  puppet-hieradata:
+</span><span class='line'>#    user: puppet
+</span><span class='line'>#    repo: /etc/puppet/hieradata
+</span><span class='line'>#    mode: dangerous
+</span><span class='line'>#
+</span><span class='line'>#  puppet-environments:
+</span><span class='line'>#    user: puppet
+</span><span class='line'>#    repo: /etc/puppet/puppet-environments
+</span><span class='line'>#    target: /etc/puppet/environments
+</span><span class='line'>#    mode: puppetmaster</span></code></pre></td></tr></table></div></figure>
+
+
+<p>&#8230; Where &#8216;rserver&#8217; is a connection URL you can feed to the Ruby stomp library, listen- and report- topics should be moderately self-evident and the interesting bit is at the bottom - the repository names and locations on the target machine. So that turns into &#8216;cd repodir &amp;&amp; git fetch&#8217;. Sorted.</p>
+
+<p><em>Puppetmaster specials?</em></p>
+
+<p>The dynamic git-branch stuff above does its stuff with ssh pubkeys and a post-commit shellscript. This works fine for our one puppetmaster that&#8217;s on the same VLAN as our gitolite box. However, our other puppetmaster is on the inside of the corporate firewall where inbound connections are <em>verboten.</em> Like don&#8217;t even ask because a chorus of derision from the rest of the ops team can sometimes offend the sorts of people who become wedded to single ways of doing things.</p>
+
+<p>However, the AMQ rig is Allowed, so the stomp-git daemon has a puppetmaster mode. (Which would probably be better being split off into a different program, but I wrote it in a temper and and&#8230;)</p>
+
+<p>In puppetmaster mode, the daemon will also checkout the update it has just fetched. You really don&#8217;t want want this sort of behaviour under most circumstances.</p>
+
+<p>Referencing the above config, &#8216;puppet-environments&#8217; is the location of the cloned copy of your puppetmaster tree and &#8216;environments&#8217; is the checked-out version that features in the linked description of dynamic branching even further above.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java-based diversionary tactics]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/01/java-based-diversionary-tactics/"/>
+    <updated>2012-04-01T16:54:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/01/java-based-diversionary-tactics</id>
+    <content type="html"><![CDATA[<p>The other week, I stood in front of a room filled with my notional peers and allowed as how &#8216;ActiveMQ setup was a bit of a pig, but once you&#8217;d got it working it was pretty simple.&#8217;</p>
+
+<p>[FX: Pause for hollow laughter]</p>
+
+<p>In retrospect, that statement was obviously going to come back and bite me just as soon as it had located its special big false teeth. Thus it came to pass on Wednesday night that two of the brokers had a meltdown, which in turn broke some experimental Nagios-over-Stomp code and so kept the poor sod who was on call in a state of near panic as <em>everything</em> reportedly failed.</p>
+
+<p>Oops.</p>
+
+<p>So when I pitch up on Thursday AM, I am welcomed by the whole team merrily grousing about &#8216;your effing brokers&#8217; (Some software objects are like children and pets. When they&#8217;re well behaved and/or looking cute for visitors, they&#8217;re <em>our</em> children or pets. When they&#8217;ve just left a deposit behind the telly, they&#8217;re <em>your</em> children or pets). Indeed it was a right mess. One broker had used all the memory allocated and as if for spite had run out of filehandles too. It was all a bit odd. Some poking about revealed [AMQ-jira ticket] which more-or-less explains itself and the fact that it looked an awful lot like an experimental client wasn&#8217;t responding to messages as quickly as one might hope.</p>
+
+<!-- more -->
+
+
+<p>There&#8217;s a page or two on the Apache-AMQ site about the problem with &#8216;slow consumers&#8217;. The upshot seems to be that it is not yet a solved problem.</p>
+
+<p>Anyway. This is going to be a hand-waving description of the AMQ config we use. There may or may not be better ways of doing it, but this one (mostly) works for us.</p>
+
+<p>The most recent (and likely final) topology is a mesh (actually it looks like a wonky pentagram, but that&#8217;s neither here nor there), in that each broker (there are seven) is directly connected to the other six. The theory is that since the individual brokers aren&#8217;t guaranteed to stay up (more of that anon) each section of the network should have a pair of brokers available and all the clients should instantiate &#8216;reliable&#8217; comms by connecting to a failover pair. In Ruby (as evidenced by MCollective itself) and PHP, this works rather well.</p>
+
+<p>A tiresome thing to note is that the XML entities/objects/annoyances that make up the broker specification <em>have to be in alphabetical order</em> which, um, riiight.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;broker xmlns="http://activemq.apache.org/schema/core" brokerName="Your-broker-1" useJmx="true" persistent="false"></span></code></pre></td></tr></table></div></figure>
+
+
+<p>So far so good. Your various brokers should have different names.  The wrinkle here is that we turn off persistent messaging. The theory is that in the case of a broken consumer on a busy topic or queue - say you&#8217;re moving metrics or logs - the broker won&#8217;t get bogged down storing them to disk. As we have discovered, in that eventuality it&#8217;ll try its best before getting wedged. I think we&#8217;re in Linux OOM-killer territory here. There isn&#8217;t a good answer so much as a least-worst one.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;destinationPolicy>
+</span><span class='line'>    &lt;policyMap>
+</span><span class='line'>      &lt;policyEntries>
+</span><span class='line'>        &lt;policyEntry topic=">" advisoryForSlowConsumers="true" />
+</span><span class='line'>              &lt;policyEntry topic=">" advisoryWhenFull="true" />
+</span><span class='line'>              &lt;policyEntry queue="*.reply.>" gcInactiveDestinations="true" inactiveTimoutBeforeGC="300000" />
+</span><span class='line'>        &lt;policyEntry topic="metrics.>">
+</span><span class='line'>          &lt;pendingMessageLimitStrategy>
+</span><span class='line'>            &lt;constantPendingMessageLimitStrategy limit="50000"/>
+</span><span class='line'>          &lt;/pendingMessageLimitStrategy>
+</span><span class='line'>        &lt;/policyEntry>
+</span><span class='line'>          &lt;policyEntry topic="future.events.>">
+</span><span class='line'>          &lt;subscriptionRecoveryPolicy>
+</span><span class='line'>              &lt;fixedCountSubscriptionRecoveryPolicy maximumSize="3"/>
+</span><span class='line'>              &lt;/subscriptionRecoveryPolicy>
+</span><span class='line'>          &lt;/policyEntry>
+</span><span class='line'>      &lt;/policyEntries>
+</span><span class='line'>      &lt;/PolicyMap>
+</span><span class='line'>  &lt;/destinationPolicy></span></code></pre></td></tr></table></div></figure>
+
+
+<p>Policy entries set per-topic/queue behaviours. For instance we want one of the ActiveMQ.Advisory topics that the brokers use for internal management to grass up slow consumers and another one to emit messages when any other topic fills up. The JSON they emit can be jolly handy for monitoring what&#8217;s going on with a broker. The next-to-last entry sets a maximum message backlog for the metrics tree, and the final one allows anything consuming the future.events tree to see the last three messages in each subtopic. A kind of &#8216;previously on future.events&#8217; if you will.</p>
+
+<p>If you have more than one broker, you&#8217;ll need to set up some network connectors. The below examples fold in the changes for MCollective 1.3 which requires separate connectors for queues and topics. You&#8217;ll also note that the URIs are specified as SSL connections. Setting this up requires some faffery with Java Keytool and some XML that specifies where to find the keystores. This will turn up later because of the alphabetical ordering thing.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;networkConnectors>
+</span><span class='line'>    &lt;networkConnector 
+</span><span class='line'>      name="broker1-broker2-topics" 
+</span><span class='line'>      uri="static:(ssl://an.ip.add.ress:6166)" 
+</span><span class='line'>      userName="YourUsername" 
+</span><span class='line'>      password="YourPW" 
+</span><span class='line'>      duplex="true" 
+</span><span class='line'>      networkTTL="1" 
+</span><span class='line'>      decreaseNetworkConsumerPriority="true">
+</span><span class='line'>      &lt;excludedDestinations>
+</span><span class='line'>        &lt;queue physicalName=">" />
+</span><span class='line'>      &lt;/excludedDestinations>
+</span><span class='line'>    &lt;/networkConnector>
+</span><span class='line'>    &lt;networkConnector 
+</span><span class='line'>      name="broker1-broker2-queues" 
+</span><span class='line'>      uri="static:(ssl://an.ip.add.ress:6166)"
+</span><span class='line'>      userName="YourUsername" 
+</span><span class='line'>      password="YourPW" 
+</span><span class='line'>      duplex="true" 
+</span><span class='line'>      networkTTL="1" 
+</span><span class='line'>      decreaseNetworkConsumerPriority="true">
+</span><span class='line'>      &lt;excludedDestinations>
+</span><span class='line'>        &lt;topic physicalName=">" />
+</span><span class='line'>      &lt;/excludedDestinations>     
+</span><span class='line'>    &lt;/networkConnector>
+</span><span class='line'>  &lt;/networkConnectors></span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;plugins>
+</span><span class='line'>    &lt;authorizationPlugin>
+</span><span class='line'>      &lt;map>
+</span><span class='line'>        &lt;authorizationMap>
+</span><span class='line'>          &lt;AuthorizationEntries>
+</span><span class='line'>            &lt;authorizationEntry queue=">" write="admins" read="admins" admin="admins" />
+</span><span class='line'>            &lt;authorizationEntry topic=">" write="admins" read="admins" admin="admins" />
+</span><span class='line'>            &lt;authorizationEntry queue="mcollective.>" write="admins" read="admins" admin="admins" />
+</span><span class='line'>            &lt;authorizationEntry topic="mcollective.>" write="admins" read="admins" admin="admins" />
+</span><span class='line'>          &lt;/authorizationEntries>
+</span><span class='line'>        &lt;/authorizationMap>
+</span><span class='line'>      &lt;/Map>
+</span><span class='line'>    &lt;/authorizationPlugin>
+</span><span class='line'>
+</span><span class='line'>    &lt;simpleAuthenticationPlugin>
+</span><span class='line'>      &lt;users>
+</span><span class='line'>        &lt;authenticationUser username="YourUsername" password="YourPW" groups="admins,everyone"/>
+</span><span class='line'>        &lt;authenticationUser username="Joe-Sysadmin" password="JoesPW" groups="admins,everyone"/>
+</span><span class='line'>      &lt;/users>
+</span><span class='line'>    &lt;/SimpleAuthenticationPlugin>
+</span><span class='line'>  &lt;/plugins></span></code></pre></td></tr></table></div></figure>
+
+
+<p>Topics, queues and users. Allow admin users to read, write (and thus create, which is somewhat crucial) topics and queues. Also set up some of those admin users. Since the brokers don&#8217;t create the topics or queues until something actually starts writing to one, one could envisage a situation where the only entries in the config file are those giving admin rights. Further, since the Java code is capable of doing its user-management via LDAP, one ought to be able to dispense with the hard-coded user entries. Since one has to restart the brokers each time the config files are changed, this would likely be a Good Thing. As it is, there are a pair of brokers in each VLAN and we take care to specify that clients should expect to do failover between them.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;sslContext>
+</span><span class='line'>    &lt;sslContext keyStore="file:${activemq.base}/conf/broker.ks" keyStorePassword="TopSecret" trustStore="file:${activemq.base}/conf/client.ts" trustStorePassword="SecretTop"/>
+</span><span class='line'>  &lt;/SslContext></span></code></pre></td></tr></table></div></figure>
+
+
+<p>SSL. What I have taken to doing is generating a certificate for each broker and storing it in broker.ks. Then I export the certificates and generate a client.ts file containing all the &#8216;other&#8217; certificates. There&#8217;s probably a better way of doing it.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;transportConnectors>
+</span><span class='line'>    &lt;transportConnector name="openwire" uri="ssl://0.0.0.0:6166?socketBufferSize=131072?ioBufferSize=16384"/>
+</span><span class='line'>    &lt;transportConnector name="stomp" uri="stomp+nio://0.0.0.0:61613?socketBufferSize=131072?ioBufferSize=16384?transport.closeAsync=false"/>
+</span><span class='line'>  &lt;/transportConnectors></span></code></pre></td></tr></table></div></figure>
+
+
+<p>You will need some transports. Stomp for the MCollective rig and our Ruby/PHP/Perl clients, Openwire for the Java-native messaging used by the inter-broker links.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/broker></span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>Fin.</em></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Much todo about some things]]></title>
+    <link href="http://failcake.github.com/blog/2012/03/29/much-todo-about-some-things/"/>
+    <updated>2012-03-29T22:07:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/03/29/much-todo-about-some-things</id>
+    <content type="html"><![CDATA[<p>In the wake of Puppetcamp Edinburgh, which was jolly nice, I emitted about half a screen of rambling on one of the work IRC channels as a set of notes for future selves
+(pun very much intended). This is something I do rather a lot, because <em>obviously</em> it&#8217;s impossible to perform any sort of useful thinking in an open-plan office
+filled with cheery sorts who Want Things Now. The drive/ride home is also a time for sudden and Hoffman-like inspirations.</p>
+
+<p>Anyway.</p>
+
+<p>Whatever I wrote has vanished off the end of the scrollback, so I&#8217;ll have to make it all up again.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[In which there is a roadie]]></title>
+    <link href="http://failcake.github.com/blog/2012/03/28/in-which-there-is-a-roadie/"/>
+    <updated>2012-03-28T15:57:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/03/28/in-which-there-is-a-roadie</id>
+    <content type="html"><![CDATA[<p>One-two. One-two.</p>
+]]></content>
+  </entry>
+  
+</feed>

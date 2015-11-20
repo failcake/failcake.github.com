@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: post-hack rationalisation | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/post-hack-rationalisation/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[re-inventing the wheel - square and on fire]]></title>
+    <link href="http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/"/>
+    <updated>2014-02-07T20:27:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire</id>
+    <content type="html"><![CDATA[<p>I am incompetent and I can't make Vagrant work.</p>
+
+<p>At least, that's the excuse I've been making for not joining in with the
+rest of the floor in using that for Puppet (among other things) development. Instead, my dev-rig is a VM running as a
+puppetmaster that's tracking the changes I make to a given branch in our Git repo via the magic of post-commit hooks and
+another VM in which I can run 'puppet agent --debug --blah --server (first VM)'. Once in a while I remember to blow away
+the second VM so I can make sure everything builds in the right order. However, even with snapshots it's just slightly
+too painful to happen regularly.</p>
+
+<p>Meanwhile, quite a lot of the recent developments at Future have involved rigs of between eight and twelve boxes.
+Generating a worthwhile test/dev version of one of those is rather tiresome because even if you've got the spare
+horsepower lying about, you have to spend yea-long wiring it all together, sanitising the static and/or test data and
+it all quickly gets completely <em>oh god why did i even get out of bed i should have been a farmer like my dad mind you if
+i had done that i'd have been out of bed at six to go feed the sheep on long barrow bank perhaps not after all...</em></p>
+
+<p>So when a mildly broken Dell R620 arrived back from one of the DCs coincidentally with me wanting to have a play with
+this Docker business, it all seemed a bit convenient.</p>
+
+<p>I am incompetent and I can't make Docker work. On Debian.</p>
+
+<p><a href="http://linuxcontainers.org/">LXC</a>, on the other hand, was slightly simpler than falling off a log.</p>
+
+<p>Given that it's simple to build a puppetmaster that's the same as one of the live ones, and that all the machine config
+I currently care about is in a manifest, it should be pretty easy to generate a container and have it puppet itself up
+tolerably quickly.</p>
+
+<p>This indeed turned out to be the case. However, having to hand-allocate IP addresses and fiddle about with container
+naming such that they picked up the configs in use on the live rig was all a bit too hands-on and really not what I
+wanted.</p>
+
+<p><a href="http://www.thekelleys.org.uk/dnsmasq/doc.html">DNSMasq</a> fixed the first problem. It is a surprisingly useful tool.</p>
+
+<p>A rakefile which read a list of made-up machine names, generated softlinks to the actual hiera node configs and then
+instantiated the relevant containers fixed the second.</p>
+
+<p>I also spent <em>quite some time</em> building a Wheezy 'image' that minimised apt-get as much as possible.</p>
+
+<p>Result - fully puppeted containers come up in circa a minute. Somewhat longer if you have to install PHP.
+If I didn't have quite such a rational hatred of golden images and all who sail in them, it would likely be faster
+still.</p>
+
+<p>The next part is a bit fiddly.</p>
+
+<p>The example problem I now have is that some parts of my collection of yea-many VMs want to connect to other parts. For
+instance if I have a redis slave, I need to know what the master's IP address might be during the puppet run. At Future,
+we generate a location fact and use that in our hiera, er, hierarchy to configure things like message brokers,
+smarthosts and DNS ordering. I could just add yet another location - testbox, or something - allocate a block of IP
+space and then add some extra indirection. And then I could do that again for each person and/or project that wanted to
+run up a test-rig. At which point one has just run into a behaviour pattern that should probably be named 'It's OK, I
+can fix that for you.'</p>
+
+<p>I first came across this in, er, 1991 when doing some NHS-related coding. One of the other chaps had written a thing
+which had to deal with, oh I don't know, ten items or something. Because he was a forward-thinking sort, he allocated
+sixteen slots in his array and beetled off all smug for a coffee and a corned beef sandwich. As you might expect, a few
+months later one site or other had a list of seventeen items and a bug report. 'It's OK, I can fix that for you!' went
+our chap and expanded the array to the clearly ludicrous value of some twenty-three slots...</p>
+
+<p>There's scope for an Eric Berne knockoff book of tiresome technical behaviour antipatterns, isn't there?</p>
+
+<p>Anyway, I'm using DHCP, and I wanted the entire edifice to work with little or no extra typing.</p>
+
+<p>CoreOS's <a href="https://github.com/coreos/etcd">ETCD</a> looked like a good fit. Emit salient facts to etcd database when bringing up (say) redis master, then
+query same via <a href="https://github.com/garethr/hiera-etcd">Garethr's hiera-etcd</a> when bringing up the slave. Profit!</p>
+
+<p>That bit did take a little tinkering to get right.</p>
+
+<p>It seems to me that the notion of a reactive puppet configuration is really rather interesting. Other people may well be
+screaming in terror and jabbering about things like 'deadly embrace' and 'terrible feedback loops are fine for the Jesus
+and Mary Chain (Or A Place to Bury Strangers if that's too retro for you) but have no place in a theoretically stable
+configuration.' However, just as a top-down decision process enforced by rigid hierarchy is a hateful idea for a
+workplace environment, so it is for a machine environment.</p>
+
+<p>TL;DR - code in <a href="https://github.com/FuturePublishing/model-village">Github</a>, patches welcome.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Finding places to put things]]></title>
+    <link href="http://failcake.github.com/blog/2012/12/28/finding-places-to-put-things/"/>
+    <updated>2012-12-28T23:31:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2012/12/28/finding-places-to-put-things</id>
+    <content type="html"><![CDATA[<p>I suspect this blog-thing will just contain sporadic apologies for lack of content for most of its lifetime.</p>
+
+<p>Anyway.</p>
+
+<p>This time the excuses have been brought to you by the words 'fail', 'power', 'generator', 'contactor', '250A supply',
+'melted' and the phrases 'boot that filer from a different Vol0', 'can you smell smoke?' and 'Oh hell not again'.</p>
+
+<p>As you might imagine, it's been busy and the DR plan has been tested and found interesting.</p>
+
+<p>We're still Barberising and Hiera-ing up our shonky collection of Puppet modules. I'd say that they're getting less
+shonky by the day, but it's taking longer than that. I hesitate to talk about 'patterns', because... Actually, I think
+that's an example of self-taught-hacker anti-intellectualism, which is an equal amount of rubbish as its opposite.</p>
+
+<p>So. The Barberis(ing|ed) pattern is a fine thing and, when used in combination with the wonder that is Hiera, allows us
+to do more things in simpler code.</p>
+
+<p>However. One of the modules that I'd been putting off refactoring (so 'patterns' are suspect but 'refactoring' is fine,
+eh?) was the one that manages our NSD install and thus the DNS for quite a number of domains, some of which contain
+rather popular websites.</p>
+
+<p><a href="http://www.nlnetlabs.nl/projects/nsd/">NSD is the authoritative-only nameserver daemon written by NLNet Labs</a>, who are a top bunch of chaps. We abandoned Bind
+after there were one too many vulnerability notices.</p>
+
+<p>I'd been putting off the work because the v0.1 module just drops the entirety of the zone-files directory under
+../files/ and lets Puppet do the work of synchronising the files across the nameservers. It's not as if it's a terrible
+thing to do at first glance - Puppet's file-serving means you can stop faffing with hand-brewed rsync scripts for
+managing the out-of-band DNS data, and if you've got your Puppet tree in a sensible SCM, you get version control 'for
+free'.</p>
+
+<p>However (again), great lumps of org-specific data like that shouldn't really, we are told, be held within the module
+tree. It's not necessarily obvious where the data should go, though. Nor is it terribly obvious how you connect it back
+to the Puppet module and have changes in the one signal the other to perform tasks.</p>
+
+<p>Well, it is if you look at the right corners of the Internet, but this thing is mostly me groping around and trying
+stuff out as a warning to others.</p>
+
+<p>NSD installation and management goes in the now-Barberised NSD module.</p>
+
+<p>This also deposits code that rebuilds the NSD config file when a domain is added or removed. And indeed the out-of-band
+master list of domains, which semi-obviously has to travel separately from the zonefiles for $reasons.</p>
+
+<p>(It's about this time that someone-who-is-not-me would be going 'Why isn't all this domain gubbins in a nice database
+somewhere, then all zone maintenance would be a simple 'SELECT mumble FROM yinglebart WHERE tewkesbury ISNT something'',
+which would be very shortly before I hauled out the sarcasm throwing machine.)</p>
+
+<p>The zonefiles live in a git repo of their own. That repo is cloned down onto the master DNS server(s) and kept current via the
+magic of post-commit hooks. Meanwhile, there's a file resource in the NSD module which looks like this:</p>
+
+<pre><code>file { '/var/lib/nsd3/.git/HEAD':
+  audit   =&gt; content,
+  notify  =&gt; Exec['rebuild'],
+}
+
+exec { 'rebuild':
+  command     =&gt; '/etc/nsd3/code/refresh.sh',
+  refreshonly =&gt; true,
+}
+</code></pre>
+
+<p>... Which is lifted wholesale from
+<a href="https://github.com/jordansissel/puppet-examples/tree/master/unmanaged-file-notify">here.</a> Either we've found one of the non-terrible use cases for this hack, or I'll be
+writing another rambling post in a few months when I've had a better idea.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A hazelnut in every bite]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite/"/>
+    <updated>2012-04-19T15:20:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite</id>
+    <content type="html"><![CDATA[<p>An obvious question is 'Why on earth bother with all this message-wanging gubbins? Isn't mail and/or SSH good enough for you?' to which the glib answer is 'No it isn't.'</p>
+
+<p>A longer answer involves spotting the really obvious problem in my last post. That is 'Ok, so you've bodged in some code that'll auto-update your live puppetmaster tree on a commit to that repository. What are the chances that said commit is b0rked and causes an epic cake-fail?'</p>
+
+<p>Well, in theory you're committing to a develop branch which only one or two of your machines are following, because that's the entire point of having the dynamic branch rig in the first place. However, PEBCAK happens and perhaps you should have a Jenkins instance that sanity-checks (as much as is possible, anyway) the puppet code that's just been committed.</p>
+
+<p>Hurrah! Problem solved! Let's have one of those!</p>
+
+<p>I don't know how you'd plumb something like that into another environment, but this is how it works here:</p>
+
+<ul>
+<li>Configure the stomp-jenkins daemon to listen for <em>puppet-environments</em> commits on <em>future.git.commits</em> (c0dez available in the usual place)</li>
+<li><a href="http://vstone.eu/puppet-modules-in-jenkins/">Configure Jenkins for Puppet and puppet-lint</a></li>
+<li>Configure Jenkins to emit a message on (say) <em>future.jenkins.success</em> if the tests pass. (c0dez for that available ditto)</li>
+<li>Configure the stomp-git daemon on your puppetmaster to listen on <em>future.jenkins.success</em></li>
+<li>Er, <em>profit.</em></li>
+</ul>
+
+
+<p>Obviously enough, chaining in extra bits or constructing side-chains is relentlessly trivial.</p>
+
+<p>You could probably do it with a massive make or rake file, too.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[One very important thought]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/19/one-very-important-thought/"/>
+    <updated>2012-04-19T12:24:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/19/one-very-important-thought</id>
+    <content type="html"><![CDATA[<p>I have been hacking on stomp-git over the past couple of days. Mostly because there may or may not be a lurking nasty with the way it sometimes stops listening on its, er listen topic, but
+also because it has needed a deal of de-Futuring and general fettling so it doesn't make proper coders claw their own faces off in horror.</p>
+
+<p>And because I had forgotten how I'd made it work when it came to the svn->git rollout of one of our major sites.</p>
+
+<p>Thus it seems as good a time as any to explain how I think it should work and indeed why it works like that.</p>
+
+<!-- more -->
+
+
+<p>The elevator pitch (of sorts) is that if you've got a message-bus that connects all your servers together...</p>
+
+<p>Actually there wasn't an elevator pitch. I think it was a combination of wondering about how one might make deploys faster (and thus less painful),
+implementing <a href="http://hunnur.com/blog/2010/10/dynamic-git-branch-puppet-environments/">Hunter Haugen's dynamic git-branching for puppet</a> and making the AMQ rig more reliable because we'd sold one of the dev teams on the idea of using it for inter-server comms.</p>
+
+<p>What the stomp-git daemon does is subscribe to a topic, in our case named 'future.git.commits' and if it spots a commit message for a repository it cares about, issues a 'git fetch' command in order
+to update its local copy of that repo. Thus when it comes time to deploy a site, the relevant tag or branch is already lurking in the git tree and the actual 'git checkout epic-bugfix-4.77' happens tolerably quickly.</p>
+
+<p>This does involve a selection of scripts and daemons flying in close formation, so I shall attempt to describe the flow of events.</p>
+
+<p>An assumption I made is that there's something like gitolite where most of your repositories live and it's been configured to emit post-commit messages.</p>
+
+<p>If you're using GitHub, they have post-commit hooks that'll talk to all sorts of things, and their example Sinatra code is trivially hackable. I'll cover that in a later post.</p>
+
+<p>A commit message looks a lot like this:</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>[spog] refs/heads/master aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>repo: spog
+</span><span class='line'>oldrev: dc01649eee870d1a9f051f046165890c4c5e197d
+</span><span class='line'>newrev: aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>refname: refs/heads/master
+</span><span class='line'> commit aa794ab6cc1a4a504fd908efc938c0f241557ad4
+</span><span class='line'>Author: John Hawkes-Reed &lt;a href="&#109;&#97;&#105;&#108;&#116;&#x6f;&#58;&#x6a;&#111;&#104;&#110;&#x2e;&#104;&#97;&#119;&#x6b;&#101;&#115;&#45;&#x72;&#101;&#101;&#x64;&#x40;&#x66;&#117;&#x74;&#117;&#x72;&#101;&#x6e;&#x65;&#x74;&#46;&#x63;&#x6f;&#x6d;">&#106;&#111;&#x68;&#110;&#46;&#x68;&#97;&#119;&#x6b;&#x65;&#115;&#x2d;&#x72;&#x65;&#x65;&#x64;&#x40;&#102;&#x75;&#x74;&#x75;&#x72;&#101;&#110;&#x65;&#x74;&#x2e;&#x63;&#x6f;&#109;&lt;/a>
+</span><span class='line'>Date:   Wed Mar 14 11:55:15 2012 +0000&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>bonkle
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p>diff --git a/bonkle b/bonkle
+</span><span class='line'>index 1169e1c..48ee005 100644
+</span><span class='line'>--- a/bonkle
+</span><span class='line'>+++ b/bonkle
+</span><span class='line'>@@ -26,3 +26,4 @@ bonkle
+</span><span class='line'> bonkle
+</span><span class='line'> bonkle
+</span><span class='line'> bonkle
+</span><span class='line'>+bonkle&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>... And if that looks an awful lot like the output from the example post-commit mail, that's because I cribbed it wholesale.</p>
+
+<p>The only section that the stomp-git daemon is looking for is the 'repo: spog' line. The rest is syntactic sugar on the off-chance that someone wants to subscribe to that topic and (say) pass the output to an IRC channel.</p>
+
+<p>Here's the YAML config for the stomp-git daemon:</p>
+
+<h2><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/h2>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>Corp&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>rserver: failover://(stomp://gituser:gitpass@amq1.domain.com:61613,stomp://gituser:gitpass@amq2.domain.com:61613)&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>Co-lo&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>rserver: failover://(stomp://othergituser:othergitpass@amq3.otherdomain.net:61613,stomp://othergituser:othergitpass@amq4.otherdomain.net:61613)
+</span><span class='line'>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>Topics:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>listen-topic: future.git.commits
+</span><span class='line'>report-topic: future.events.stomp-git
+</span><span class='line'>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>All repo modes badly explained:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>normal: - fetch $repo.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>trusting - fetch $repo, checkout origin/master to $target.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>dangerous - fetch $repo, checkout origin/master.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>puppetmaster - fetch $repo, checkout to $target/$branch. As above.&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>Repos below here&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#
+</span><span class='line'>repo-list:&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>example-repo:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>user: rubyapps&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>repo: /data/repos/example&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>mode: normal&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>spog:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>user: www-data&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>repo: /data/repos/octopress-site&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>target: /data/sites/www.my-octopress.co.uk&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>mode: trusting&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>puppet-hieradata:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>user: puppet&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>repo: /etc/puppet/hieradata&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>mode: dangerous&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p>#&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>puppet-environments:&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>user: puppet&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>repo: /etc/puppet/puppet-environments&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>target: /etc/puppet/environments&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;h1>mode: puppetmaster&lt;/h1>
+</span><span class='line'>
+</span><span class='line'>&lt;p></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>... Where 'rserver' is a connection URL you can feed to the Ruby stomp library, listen- and report- topics should be moderately self-evident and the interesting bit is at the bottom - the repository names and locations on the target machine. So that turns into 'cd repodir &amp;&amp; git fetch'. Sorted.</p>
+
+<p><em>Puppetmaster specials?</em></p>
+
+<p>The dynamic git-branch stuff above does its stuff with ssh pubkeys and a post-commit shellscript. This works fine for our one puppetmaster that's on the same VLAN as our gitolite box. However, our other puppetmaster is on the inside of the corporate firewall where inbound connections are <em>verboten.</em> Like don't even ask because a chorus of derision from the rest of the ops team can sometimes offend the sorts of people who become wedded to single ways of doing things.</p>
+
+<p>However, the AMQ rig is Allowed, so the stomp-git daemon has a puppetmaster mode. (Which would probably be better being split off into a different program, but I wrote it in a temper and and...)</p>
+
+<p>In puppetmaster mode, the daemon will also checkout the update it has just fetched. You really don't want want this sort of behaviour under most circumstances.</p>
+
+<p>Referencing the above config, 'puppet-environments' is the location of the cloned copy of your puppetmaster tree and 'environments' is the checked-out version that features in the linked description of dynamic branching even further above.</p>
+]]></content>
+  </entry>
+  
+</feed>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: sunburned hackers | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/sunburned-hackers/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2015-11-20T23:24:12+00:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[EMFcamp]]></title>
+    <link href="http://failcake.github.com/blog/2012/09/05/emfcamp/"/>
+    <updated>2012-09-05T21:25:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/09/05/emfcamp</id>
+    <content type="html"><![CDATA[<p>For reasons that seemed jolly sensible at the time (ie - someone dared me to do it) I gave
+a much-modified version of The Puppetcamp Talk at <a href="https://www.emfcamp.org/">EMFcamp</a>. Modified in that it was four
+months later and we'd made some things work better, abandoned others and had some mostly-bright
+ideas for new stuff.</p>
+
+<p>Thus linked here somewhere should be <a href="/downloads/emfcamp.pdf">the PDF version of the slides</a>, which because I am that sort of
+forward-thinking sod (actually, I'd seen this be a requirement at 28c3, and it seemed sensible, so...)
+was the version I presented because the Nice People didn't have the relevent podule to connect a Macbook
+to the big screen in the tent.</p>
+]]></content>
+  </entry>
+  
+</feed>
