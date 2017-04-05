@@ -1,0 +1,296 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Stirrings from the pit: DNS - Devops malarkey</title>
+  <meta name="author" content="Bodge and Guesswork">
+
+  
+  <meta name="description" content="So anyway. DNS. It seems that every time I opine on the FB about the state of our own DNS rig, someone or other will
+grouse about the rubbish state &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://failcake.github.com/blog/2017/04/05/stirrings-from-the-pit-dns">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Devops malarkey" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Devops malarkey</a></h1>
+  
+    <h2>Success. Failure. Cake.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:failcake.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Stirrings From the Pit: DNS</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2017-04-05T22:51:00+01:00" pubdate data-updated="true">Apr 5<span>th</span>, 2017</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>So anyway. DNS. It seems that every time I opine on the FB about the state of our own DNS rig, someone or other will
+grouse about the rubbish state of the name services at their own place of work. If it&#8217;s not carefully hand-curated hosts
+tables to prop up and/or bodge around stuff that no-one can change, it&#8217;s having to keep a sheet of paper with columns of
+IP addresses that belong to the servers you&#8217;re expected to use. Which, oh look. It&#8217;s just rubbish and there&#8217;s no excuse.</p>
+
+<p>Here are the things we do at Future.</p>
+
+<ul>
+<li><p>The zonefiles live in a Gitlab instance. Other source-code repositories are available. As is the old zonefile for
+futurenet.co.uk which has about a page of comments at the top which are instructions not to fiddle, to always log what
+changes you made, really don&#8217;t fiddle and if you break it you are in <em>so</em> much trouble. Stuff like that is rubbish.
+Don&#8217;t do it. The DNS is a bunch of text files which respond well to versioning. There&#8217;s no excuse not to. Even RCS is
+more than good enough if you don&#8217;t have git to hand, but keeping it on a different server does mean you&#8217;ve a backup if
+something unfortunate happens to your nameserver.</p></li>
+<li><p>The zonefiles are pushed out to all the nameservers automatically, which makes it quite hard to have a zone mismatch.
+(It&#8217;s possible though. I shall explain below.) How you do that is best hacked up locally, because our rig (Git pulls
+triggered by a pubsub message bus) would be somewhat top-heavy for just this one job. Gitlab has multiple triggers. Use
+the sort of thing you like best.</p></li>
+<li><p>The config is managed by Puppet. If you&#8217;re still managing server config by hand, please stop, have a mug of something
+warming and try to work out why you hate yourself so much.</p></li>
+<li><p>Because Gitlab contains a CI rig that uses containers, we test the zonefiles on every commit by sparking up a
+container with a complete nameserver install inside and then making sure that the forward zones match the reverse
+ones, the zonefiles actually parse, the SOA records and NS records match and that the serial number on the zone hasn&#8217;t
+been fat-fingered to overflow its type. These are all things that can, will and have gone wrong for us, so having the
+machines rather than the customers do a spot of sanity-checking is likely a Good Thing.</p></li>
+<li><p>The code that configures the container to run NSD, build its config and sanity-check the zones is the  production code
+that runs the production nameservers.</p></li>
+<li><p>This means that pretty much anyone can checkout the zones, patch them and submit a merge request, which lowers the
+load on the people who know DNS best (er, me) and allows the less confident to make their own changes, knowing that
+the machinery will flag up problems before they escape to production. See above about not fiddling. That&#8217;s a terrible
+way to run anything. No-one will learn a damn thing if they&#8217;re too scared to make mistakes. So all the work will be
+queued up for the High Priestesses, and that will breed resentment because oh god can&#8217;t you people do anything for
+yourselves here look it&#8217;s simple.</p></li>
+<li><p>You will also have to be able to rebuild the config files automatically when you add or remove a domain. While DNS
+knows about secondary servers, there&#8217;s no in-band signalling to allow for that sort of thing. Our git repo contains a
+subdirectory of zonefiles, another containing a big list of domains, and a scripts subdir where all the testing bits
+live.</p></li>
+<li><p>In our case, we have a pile of domains that are more or less The Same. So we have a generic zonefile that just
+contains some NS records and a set of A and A4 records that point to a webserver that does db-based 301 redirects.
+That&#8217;s the sort of thing that happens when you experiment with Nginx, embedded Ruby and Redis. Still, it&#8217;s less worse
+than the previous versions. Unsurprisingly, the big YAML table of redirects is also held in Gitlab and runs up a
+container to test itself on commit. You can probably sense a theme here.</p></li>
+<li><p>A thing we&#8217;re working towards is programmatic generation of the reverse zones from the forward ones, mostly prompted
+by the utter impossibility of working with ip6.arpa addresses if you&#8217;re even slightly dyslexic. Obviously the logical
+endpoint for such thinking is a return to using the H2N(-HP) script for generating zones from hosts tables. (HHOS)</p></li>
+<li><p>There&#8217;s probably a better way of doing it.</p></li>
+</ul>
+
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Bodge and Guesswork</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2017-04-05T22:51:00+01:00" pubdate data-updated="true">Apr 5<span>th</span>, 2017</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/other-peoples-systems-are-terrible/'>other people's systems are terrible</a>, <a class='category' href='/blog/categories/post-hack-rationalisation/'>post-hack rationalisation</a>, <a class='category' href='/blog/categories/testing-quite-useful-shocker/'>testing quite useful shocker</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://failcake.github.com/blog/2017/04/05/stirrings-from-the-pit-dns/" data-via="" data-counturl="http://failcake.github.com/blog/2017/04/05/stirrings-from-the-pit-dns/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2015/11/20/tumbleweed/" title="Previous Post: Tumbleweed">&laquo; Tumbleweed</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2017/04/05/stirrings-from-the-pit-dns/">Stirrings from the pit: DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/11/20/tumbleweed/">Tumbleweed</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/">re-inventing the wheel - square and on fire</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/">Treating people like dicks (distance learning edition)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2013/10/28/short-commercial-break/">Short commercial break</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/failcake">@failcake</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'failcake',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2017 - Bodge and Guesswork -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
