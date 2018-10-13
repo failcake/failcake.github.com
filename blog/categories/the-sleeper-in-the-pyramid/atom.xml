@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: the sleeper in the pyramid | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/the-sleeper-in-the-pyramid/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2018-10-13T19:41:14+01:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[More and/or different tumbleweed]]></title>
+    <link href="http://failcake.github.com/blog/2018/10/13/more-and-slash-or-different-tumbleweed/"/>
+    <updated>2018-10-13T18:56:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2018/10/13/more-and-slash-or-different-tumbleweed</id>
+    <content type="html"><![CDATA[<p>... And then I left.</p>
+
+<p>You know how they say 'If you can't say anything nice, then don't say anything at all'?</p>
+
+<p>Well then.</p>
+]]></content>
+  </entry>
+  
+</feed>

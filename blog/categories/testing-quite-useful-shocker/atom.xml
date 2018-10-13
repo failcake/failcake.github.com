@@ -4,7 +4,7 @@
   <title><![CDATA[Category: testing quite useful shocker | Devops malarkey]]></title>
   <link href="http://failcake.github.com/blog/categories/testing-quite-useful-shocker/atom.xml" rel="self"/>
   <link href="http://failcake.github.com/"/>
-  <updated>2017-04-05T22:57:46+01:00</updated>
+  <updated>2018-10-13T19:41:14+01:00</updated>
   <id>http://failcake.github.com/</id>
   <author>
     <name><![CDATA[Bodge and Guesswork]]></name>
@@ -16,54 +16,23 @@
   <entry>
     <title type="html"><![CDATA[Stirrings from the pit: DNS]]></title>
     <link href="http://failcake.github.com/blog/2017/04/05/stirrings-from-the-pit-dns/"/>
-    <updated>2017-04-05T22:51:00+01:00</updated>
+    <updated>2017-04-05T18:46:00+01:00</updated>
     <id>http://failcake.github.com/blog/2017/04/05/stirrings-from-the-pit-dns</id>
-    <content type="html"><![CDATA[<p>So anyway. DNS. It seems that every time I opine on the FB about the state of our own DNS rig, someone or other will
-grouse about the rubbish state of the name services at their own place of work. If it's not carefully hand-curated hosts
-tables to prop up and/or bodge around stuff that no-one can change, it's having to keep a sheet of paper with columns of
-IP addresses that belong to the servers you're expected to use. Which, oh look. It's just rubbish and there's no excuse.</p>
+    <content type="html"><![CDATA[<p>So anyway. DNS. It seems that every time I opine on the FB about the state of our own DNS rig, someone or other will grouse about the rubbish state of the name services at their own place of work. If it’s not carefully hand-curated hosts tables to prop up and/or bodge around stuff that no-one can change, it’s having to keep a sheet of paper with columns of IP addresses that belong to the servers you’re expected to use. Which, oh look. It’s just rubbish and there’s no excuse.</p>
 
 <p>Here are the things we do at Future.</p>
 
 <ul>
-<li><p>The zonefiles live in a Gitlab instance. Other source-code repositories are available. As is the old zonefile for
-futurenet.co.uk which has about a page of comments at the top which are instructions not to fiddle, to always log what
-changes you made, really don't fiddle and if you break it you are in <em>so</em> much trouble. Stuff like that is rubbish.
-Don't do it. The DNS is a bunch of text files which respond well to versioning. There's no excuse not to. Even RCS is
-more than good enough if you don't have git to hand, but keeping it on a different server does mean you've a backup if
-something unfortunate happens to your nameserver.</p></li>
-<li><p>The zonefiles are pushed out to all the nameservers automatically, which makes it quite hard to have a zone mismatch.
-(It's possible though. I shall explain below.) How you do that is best hacked up locally, because our rig (Git pulls
-triggered by a pubsub message bus) would be somewhat top-heavy for just this one job. Gitlab has multiple triggers. Use
-the sort of thing you like best.</p></li>
-<li><p>The config is managed by Puppet. If you're still managing server config by hand, please stop, have a mug of something
-warming and try to work out why you hate yourself so much.</p></li>
-<li><p>Because Gitlab contains a CI rig that uses containers, we test the zonefiles on every commit by sparking up a
-container with a complete nameserver install inside and then making sure that the forward zones match the reverse
-ones, the zonefiles actually parse, the SOA records and NS records match and that the serial number on the zone hasn't
-been fat-fingered to overflow its type. These are all things that can, will and have gone wrong for us, so having the
-machines rather than the customers do a spot of sanity-checking is likely a Good Thing.</p></li>
-<li><p>The code that configures the container to run NSD, build its config and sanity-check the zones is the  production code
-that runs the production nameservers.</p></li>
-<li><p>This means that pretty much anyone can checkout the zones, patch them and submit a merge request, which lowers the
-load on the people who know DNS best (er, me) and allows the less confident to make their own changes, knowing that
-the machinery will flag up problems before they escape to production. See above about not fiddling. That's a terrible
-way to run anything. No-one will learn a damn thing if they're too scared to make mistakes. So all the work will be
-queued up for the High Priestesses, and that will breed resentment because oh god can't you people do anything for
-yourselves here look it's simple.</p></li>
-<li><p>You will also have to be able to rebuild the config files automatically when you add or remove a domain. While DNS
-knows about secondary servers, there's no in-band signalling to allow for that sort of thing. Our git repo contains a
-subdirectory of zonefiles, another containing a big list of domains, and a scripts subdir where all the testing bits
-live.</p></li>
-<li><p>In our case, we have a pile of domains that are more or less The Same. So we have a generic zonefile that just
-contains some NS records and a set of A and A4 records that point to a webserver that does db-based 301 redirects.
-That's the sort of thing that happens when you experiment with Nginx, embedded Ruby and Redis. Still, it's less worse
-than the previous versions. Unsurprisingly, the big YAML table of redirects is also held in Gitlab and runs up a
-container to test itself on commit. You can probably sense a theme here.</p></li>
-<li><p>A thing we're working towards is programmatic generation of the reverse zones from the forward ones, mostly prompted
-by the utter impossibility of working with ip6.arpa addresses if you're even slightly dyslexic. Obviously the logical
-endpoint for such thinking is a return to using the H2N(-HP) script for generating zones from hosts tables. (HHOS)</p></li>
-<li><p>There's probably a better way of doing it.</p></li>
+<li><p>The zonefiles live in a Gitlab instance. Other source-code repositories are available. As is the old zonefile for futurenet.co.uk which has about a page of comments at the top which are instructions not to fiddle, to always log what changes you made, really don’t fiddle and if you break it you are in so much trouble. Stuff like that is rubbish. Don’t do it. The DNS is a bunch of text files which respond well to versioning. There’s no excuse not to. Even RCS is more than good enough if you don’t have git to hand, but keeping it on a different server does mean you’ve a backup if something unfortunate happens to your nameserver.</p></li>
+<li><p>The zonefiles are pushed out to all the nameservers automatically, which makes it quite hard to have a zone mismatch. (It’s possible though. I shall explain below.) How you do that is best hacked up locally, because our rig (Git pulls triggered by a pubsub message bus) would be somewhat top-heavy for just this one job. Gitlab has multiple triggers. Use the sort of thing you like best.</p></li>
+<li><p>The config is managed by Puppet. If you’re still managing server config by hand, please stop, have a mug of something warming and try to work out why you hate yourself so much.</p></li>
+<li><p>Because Gitlab contains a CI rig that uses containers, we test the zonefiles on every commit by sparking up a container with a complete nameserver install inside and then making sure that the forward zones match the reverse ones, the zonefiles actually parse, the SOA records and NS records match and that the serial number on the zone hasn’t been fat-fingered to overflow its type. These are all things that can, will and have gone wrong for us, so having the machines rather than the customers do a spot of sanity-checking is likely a Good Thing.</p></li>
+<li><p>The code that configures the container to run NSD, build its config and sanity-check the zones is the production code that runs the production nameservers.</p></li>
+<li><p>This means that pretty much anyone can checkout the zones, patch them and submit a merge request, which lowers the load on the people who know DNS best (er, me) and allows the less confident to make their own changes, knowing that the machinery will flag up problems before they escape to production. See above about not fiddling. That’s a terrible way to run anything. No-one will learn a damn thing if they’re too scared to make mistakes. So all the work will be queued up for the High Priestesses, and that will breed resentment because oh god can’t you people do anything for yourselves here look it’s simple.</p></li>
+<li><p>You will also have to be able to rebuild the config files automatically when you add or remove a domain. While DNS knows about secondary servers, there’s no in-band signalling to allow for that sort of thing. Our git repo contains a subdirectory of zonefiles, another containing a big list of domains, and a scripts subdir where all the testing bits live.</p></li>
+<li><p>In our case, we have a pile of domains that are more or less The Same. So we have a generic zonefile that just contains some NS records and a set of A and A4 records that point to a webserver that does db-based 301 redirects. That’s the sort of thing that happens when you experiment with Nginx, embedded Ruby and Redis. Still, it’s less worse than the previous versions. Unsurprisingly, the big YAML table of redirects is also held in Gitlab and runs up a container to test itself on commit. You can probably sense a theme here.</p></li>
+<li><p>A thing we’re working towards is programmatic generation of the reverse zones from the forward ones, mostly prompted by the utter impossibility of working with ip6.arpa addresses if you’re even slightly dyslexic. Obviously the logical endpoint for such thinking is a return to using the H2N(-HP) script for generating zones from hosts tables. (HHOS)</p></li>
+<li><p>There’s probably a better way of doing it.</p></li>
 </ul>
 
 ]]></content>

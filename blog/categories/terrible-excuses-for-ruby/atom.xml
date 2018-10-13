@@ -4,7 +4,7 @@
   <title><![CDATA[Category: terrible excuses for Ruby | Devops malarkey]]></title>
   <link href="http://failcake.github.com/blog/categories/terrible-excuses-for-ruby/atom.xml" rel="self"/>
   <link href="http://failcake.github.com/"/>
-  <updated>2017-04-05T22:57:46+01:00</updated>
+  <updated>2018-10-13T19:41:14+01:00</updated>
   <id>http://failcake.github.com/</id>
   <author>
     <name><![CDATA[Bodge and Guesswork]]></name>
@@ -73,7 +73,7 @@ to update its local copy of that repo. Thus when it comes time to deploy a site,
 </span><span class='line'>newrev: aa794ab6cc1a4a504fd908efc938c0f241557ad4
 </span><span class='line'>refname: refs/heads/master
 </span><span class='line'> commit aa794ab6cc1a4a504fd908efc938c0f241557ad4
-</span><span class='line'>Author: John Hawkes-Reed &lt;a href="&#109;&#x61;&#x69;&#108;&#x74;&#111;&#58;&#106;&#x6f;&#x68;&#110;&#x2e;&#x68;&#x61;&#119;&#107;&#101;&#115;&#x2d;&#x72;&#101;&#101;&#x64;&#x40;&#x66;&#117;&#116;&#x75;&#114;&#x65;&#x6e;&#101;&#116;&#46;&#99;&#111;&#109;">&#106;&#111;&#x68;&#x6e;&#46;&#x68;&#97;&#119;&#x6b;&#x65;&#115;&#45;&#114;&#x65;&#101;&#x64;&#64;&#x66;&#117;&#116;&#117;&#114;&#101;&#x6e;&#x65;&#116;&#46;&#x63;&#111;&#109;&lt;/a>
+</span><span class='line'>Author: John Hawkes-Reed &lt;a href="&#109;&#x61;&#x69;&#108;&#116;&#x6f;&#58;&#x6a;&#x6f;&#x68;&#110;&#x2e;&#104;&#97;&#x77;&#107;&#101;&#x73;&#45;&#x72;&#101;&#101;&#x64;&#64;&#x66;&#117;&#116;&#x75;&#x72;&#101;&#110;&#x65;&#x74;&#x2e;&#x63;&#x6f;&#109;">&#x6a;&#111;&#104;&#110;&#46;&#x68;&#x61;&#x77;&#x6b;&#x65;&#x73;&#45;&#x72;&#101;&#101;&#x64;&#x40;&#102;&#117;&#x74;&#x75;&#x72;&#x65;&#x6e;&#x65;&#116;&#46;&#99;&#111;&#109;&lt;/a>
 </span><span class='line'>Date:   Wed Mar 14 11:55:15 2012 +0000&lt;/p>
 </span><span class='line'>
 </span><span class='line'>&lt;pre>&lt;code>bonkle
