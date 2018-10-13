@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: post-hack rationalisation | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/post-hack-rationalisation/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2018-10-13T19:41:14+01:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[More and/or different tumbleweed]]></title>
+    <link href="http://failcake.github.com/blog/2018/10/13/more-and-slash-or-different-tumbleweed/"/>
+    <updated>2018-10-13T18:56:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2018/10/13/more-and-slash-or-different-tumbleweed</id>
+    <content type="html"><![CDATA[<p>... And then I left.</p>
+
+<p>You know how they say 'If you can't say anything nice, then don't say anything at all'?</p>
+
+<p>Well then.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Stirrings from the pit: DNS]]></title>
+    <link href="http://failcake.github.com/blog/2017/04/05/stirrings-from-the-pit-dns/"/>
+    <updated>2017-04-05T18:46:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2017/04/05/stirrings-from-the-pit-dns</id>
+    <content type="html"><![CDATA[<p>So anyway. DNS. It seems that every time I opine on the FB about the state of our own DNS rig, someone or other will grouse about the rubbish state of the name services at their own place of work. If it’s not carefully hand-curated hosts tables to prop up and/or bodge around stuff that no-one can change, it’s having to keep a sheet of paper with columns of IP addresses that belong to the servers you’re expected to use. Which, oh look. It’s just rubbish and there’s no excuse.</p>
+
+<p>Here are the things we do at Future.</p>
+
+<ul>
+<li><p>The zonefiles live in a Gitlab instance. Other source-code repositories are available. As is the old zonefile for futurenet.co.uk which has about a page of comments at the top which are instructions not to fiddle, to always log what changes you made, really don’t fiddle and if you break it you are in so much trouble. Stuff like that is rubbish. Don’t do it. The DNS is a bunch of text files which respond well to versioning. There’s no excuse not to. Even RCS is more than good enough if you don’t have git to hand, but keeping it on a different server does mean you’ve a backup if something unfortunate happens to your nameserver.</p></li>
+<li><p>The zonefiles are pushed out to all the nameservers automatically, which makes it quite hard to have a zone mismatch. (It’s possible though. I shall explain below.) How you do that is best hacked up locally, because our rig (Git pulls triggered by a pubsub message bus) would be somewhat top-heavy for just this one job. Gitlab has multiple triggers. Use the sort of thing you like best.</p></li>
+<li><p>The config is managed by Puppet. If you’re still managing server config by hand, please stop, have a mug of something warming and try to work out why you hate yourself so much.</p></li>
+<li><p>Because Gitlab contains a CI rig that uses containers, we test the zonefiles on every commit by sparking up a container with a complete nameserver install inside and then making sure that the forward zones match the reverse ones, the zonefiles actually parse, the SOA records and NS records match and that the serial number on the zone hasn’t been fat-fingered to overflow its type. These are all things that can, will and have gone wrong for us, so having the machines rather than the customers do a spot of sanity-checking is likely a Good Thing.</p></li>
+<li><p>The code that configures the container to run NSD, build its config and sanity-check the zones is the production code that runs the production nameservers.</p></li>
+<li><p>This means that pretty much anyone can checkout the zones, patch them and submit a merge request, which lowers the load on the people who know DNS best (er, me) and allows the less confident to make their own changes, knowing that the machinery will flag up problems before they escape to production. See above about not fiddling. That’s a terrible way to run anything. No-one will learn a damn thing if they’re too scared to make mistakes. So all the work will be queued up for the High Priestesses, and that will breed resentment because oh god can’t you people do anything for yourselves here look it’s simple.</p></li>
+<li><p>You will also have to be able to rebuild the config files automatically when you add or remove a domain. While DNS knows about secondary servers, there’s no in-band signalling to allow for that sort of thing. Our git repo contains a subdirectory of zonefiles, another containing a big list of domains, and a scripts subdir where all the testing bits live.</p></li>
+<li><p>In our case, we have a pile of domains that are more or less The Same. So we have a generic zonefile that just contains some NS records and a set of A and A4 records that point to a webserver that does db-based 301 redirects. That’s the sort of thing that happens when you experiment with Nginx, embedded Ruby and Redis. Still, it’s less worse than the previous versions. Unsurprisingly, the big YAML table of redirects is also held in Gitlab and runs up a container to test itself on commit. You can probably sense a theme here.</p></li>
+<li><p>A thing we’re working towards is programmatic generation of the reverse zones from the forward ones, mostly prompted by the utter impossibility of working with ip6.arpa addresses if you’re even slightly dyslexic. Obviously the logical endpoint for such thinking is a return to using the H2N(-HP) script for generating zones from hosts tables. (HHOS)</p></li>
+<li><p>There’s probably a better way of doing it.</p></li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[re-inventing the wheel - square and on fire]]></title>
+    <link href="http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire/"/>
+    <updated>2014-02-07T20:27:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2014/02/07/re-inventing-the-wheel-square-and-on-fire</id>
+    <content type="html"><![CDATA[<p>I am incompetent and I can't make Vagrant work.</p>
+
+<p>At least, that's the excuse I've been making for not joining in with the
+rest of the floor in using that for Puppet (among other things) development. Instead, my dev-rig is a VM running as a
+puppetmaster that's tracking the changes I make to a given branch in our Git repo via the magic of post-commit hooks and
+another VM in which I can run 'puppet agent --debug --blah --server (first VM)'. Once in a while I remember to blow away
+the second VM so I can make sure everything builds in the right order. However, even with snapshots it's just slightly
+too painful to happen regularly.</p>
+
+<p>Meanwhile, quite a lot of the recent developments at Future have involved rigs of between eight and twelve boxes.
+Generating a worthwhile test/dev version of one of those is rather tiresome because even if you've got the spare
+horsepower lying about, you have to spend yea-long wiring it all together, sanitising the static and/or test data and
+it all quickly gets completely <em>oh god why did i even get out of bed i should have been a farmer like my dad mind you if
+i had done that i'd have been out of bed at six to go feed the sheep on long barrow bank perhaps not after all...</em></p>
+
+<p>So when a mildly broken Dell R620 arrived back from one of the DCs coincidentally with me wanting to have a play with
+this Docker business, it all seemed a bit convenient.</p>
+
+<p>I am incompetent and I can't make Docker work. On Debian.</p>
+
+<p><a href="http://linuxcontainers.org/">LXC</a>, on the other hand, was slightly simpler than falling off a log.</p>
+
+<p>Given that it's simple to build a puppetmaster that's the same as one of the live ones, and that all the machine config
+I currently care about is in a manifest, it should be pretty easy to generate a container and have it puppet itself up
+tolerably quickly.</p>
+
+<p>This indeed turned out to be the case. However, having to hand-allocate IP addresses and fiddle about with container
+naming such that they picked up the configs in use on the live rig was all a bit too hands-on and really not what I
+wanted.</p>
+
+<p><a href="http://www.thekelleys.org.uk/dnsmasq/doc.html">DNSMasq</a> fixed the first problem. It is a surprisingly useful tool.</p>
+
+<p>A rakefile which read a list of made-up machine names, generated softlinks to the actual hiera node configs and then
+instantiated the relevant containers fixed the second.</p>
+
+<p>I also spent <em>quite some time</em> building a Wheezy 'image' that minimised apt-get as much as possible.</p>
+
+<p>Result - fully puppeted containers come up in circa a minute. Somewhat longer if you have to install PHP.
+If I didn't have quite such a rational hatred of golden images and all who sail in them, it would likely be faster
+still.</p>
+
+<p>The next part is a bit fiddly.</p>
+
+<p>The example problem I now have is that some parts of my collection of yea-many VMs want to connect to other parts. For
+instance if I have a redis slave, I need to know what the master's IP address might be during the puppet run. At Future,
+we generate a location fact and use that in our hiera, er, hierarchy to configure things like message brokers,
+smarthosts and DNS ordering. I could just add yet another location - testbox, or something - allocate a block of IP
+space and then add some extra indirection. And then I could do that again for each person and/or project that wanted to
+run up a test-rig. At which point one has just run into a behaviour pattern that should probably be named 'It's OK, I
+can fix that for you.'</p>
+
+<p>I first came across this in, er, 1991 when doing some NHS-related coding. One of the other chaps had written a thing
+which had to deal with, oh I don't know, ten items or something. Because he was a forward-thinking sort, he allocated
+sixteen slots in his array and beetled off all smug for a coffee and a corned beef sandwich. As you might expect, a few
+months later one site or other had a list of seventeen items and a bug report. 'It's OK, I can fix that for you!' went
+our chap and expanded the array to the clearly ludicrous value of some twenty-three slots...</p>
+
+<p>There's scope for an Eric Berne knockoff book of tiresome technical behaviour antipatterns, isn't there?</p>
+
+<p>Anyway, I'm using DHCP, and I wanted the entire edifice to work with little or no extra typing.</p>
+
+<p>CoreOS's <a href="https://github.com/coreos/etcd">ETCD</a> looked like a good fit. Emit salient facts to etcd database when bringing up (say) redis master, then
+query same via <a href="https://github.com/garethr/hiera-etcd">Garethr's hiera-etcd</a> when bringing up the slave. Profit!</p>
+
+<p>That bit did take a little tinkering to get right.</p>
+
+<p>It seems to me that the notion of a reactive puppet configuration is really rather interesting. Other people may well be
+screaming in terror and jabbering about things like 'deadly embrace' and 'terrible feedback loops are fine for the Jesus
+and Mary Chain (Or A Place to Bury Strangers if that's too retro for you) but have no place in a theoretically stable
+configuration.' However, just as a top-down decision process enforced by rigid hierarchy is a hateful idea for a
+workplace environment, so it is for a machine environment.</p>
+
+<p>TL;DR - code in <a href="https://github.com/FuturePublishing/model-village">Github</a>, patches welcome.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Finding places to put things]]></title>
+    <link href="http://failcake.github.com/blog/2012/12/28/finding-places-to-put-things/"/>
+    <updated>2012-12-28T23:31:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2012/12/28/finding-places-to-put-things</id>
+    <content type="html"><![CDATA[<p>I suspect this blog-thing will just contain sporadic apologies for lack of content for most of its lifetime.</p>
+
+<p>Anyway.</p>
+
+<p>This time the excuses have been brought to you by the words 'fail', 'power', 'generator', 'contactor', '250A supply',
+'melted' and the phrases 'boot that filer from a different Vol0', 'can you smell smoke?' and 'Oh hell not again'.</p>
+
+<p>As you might imagine, it's been busy and the DR plan has been tested and found interesting.</p>
+
+<p>We're still Barberising and Hiera-ing up our shonky collection of Puppet modules. I'd say that they're getting less
+shonky by the day, but it's taking longer than that. I hesitate to talk about 'patterns', because... Actually, I think
+that's an example of self-taught-hacker anti-intellectualism, which is an equal amount of rubbish as its opposite.</p>
+
+<p>So. The Barberis(ing|ed) pattern is a fine thing and, when used in combination with the wonder that is Hiera, allows us
+to do more things in simpler code.</p>
+
+<p>However. One of the modules that I'd been putting off refactoring (so 'patterns' are suspect but 'refactoring' is fine,
+eh?) was the one that manages our NSD install and thus the DNS for quite a number of domains, some of which contain
+rather popular websites.</p>
+
+<p><a href="http://www.nlnetlabs.nl/projects/nsd/">NSD is the authoritative-only nameserver daemon written by NLNet Labs</a>, who are a top bunch of chaps. We abandoned Bind
+after there were one too many vulnerability notices.</p>
+
+<p>I'd been putting off the work because the v0.1 module just drops the entirety of the zone-files directory under
+../files/ and lets Puppet do the work of synchronising the files across the nameservers. It's not as if it's a terrible
+thing to do at first glance - Puppet's file-serving means you can stop faffing with hand-brewed rsync scripts for
+managing the out-of-band DNS data, and if you've got your Puppet tree in a sensible SCM, you get version control 'for
+free'.</p>
+
+<p>However (again), great lumps of org-specific data like that shouldn't really, we are told, be held within the module
+tree. It's not necessarily obvious where the data should go, though. Nor is it terribly obvious how you connect it back
+to the Puppet module and have changes in the one signal the other to perform tasks.</p>
+
+<p>Well, it is if you look at the right corners of the Internet, but this thing is mostly me groping around and trying
+stuff out as a warning to others.</p>
+
+<p>NSD installation and management goes in the now-Barberised NSD module.</p>
+
+<p>This also deposits code that rebuilds the NSD config file when a domain is added or removed. And indeed the out-of-band
+master list of domains, which semi-obviously has to travel separately from the zonefiles for $reasons.</p>
+
+<p>(It's about this time that someone-who-is-not-me would be going 'Why isn't all this domain gubbins in a nice database
+somewhere, then all zone maintenance would be a simple 'SELECT mumble FROM yinglebart WHERE tewkesbury ISNT something'',
+which would be very shortly before I hauled out the sarcasm throwing machine.)</p>
+
+<p>The zonefiles live in a git repo of their own. That repo is cloned down onto the master DNS server(s) and kept current via the
+magic of post-commit hooks. Meanwhile, there's a file resource in the NSD module which looks like this:</p>
+
+<pre><code>file { '/var/lib/nsd3/.git/HEAD':
+  audit   =&gt; content,
+  notify  =&gt; Exec['rebuild'],
+}
+
+exec { 'rebuild':
+  command     =&gt; '/etc/nsd3/code/refresh.sh',
+  refreshonly =&gt; true,
+}
+</code></pre>
+
+<p>... Which is lifted wholesale from
+<a href="https://github.com/jordansissel/puppet-examples/tree/master/unmanaged-file-notify">here.</a> Either we've found one of the non-terrible use cases for this hack, or I'll be
+writing another rambling post in a few months when I've had a better idea.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[A hazelnut in every bite]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite/"/>
+    <updated>2012-04-19T15:20:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite</id>
+    <content type="html"><![CDATA[<p>An obvious question is 'Why on earth bother with all this message-wanging gubbins? Isn't mail and/or SSH good enough for you?' to which the glib answer is 'No it isn't.'</p>
+
+<p>A longer answer involves spotting the really obvious problem in my last post. That is 'Ok, so you've bodged in some code that'll auto-update your live puppetmaster tree on a commit to that repository. What are the chances that said commit is b0rked and causes an epic cake-fail?'</p>
+
+<p>Well, in theory you're committing to a develop branch which only one or two of your machines are following, because that's the entire point of having the dynamic branch rig in the first place. However, PEBCAK happens and perhaps you should have a Jenkins instance that sanity-checks (as much as is possible, anyway) the puppet code that's just been committed.</p>
+
+<p>Hurrah! Problem solved! Let's have one of those!</p>
+
+<p>I don't know how you'd plumb something like that into another environment, but this is how it works here:</p>
+
+<ul>
+<li>Configure the stomp-jenkins daemon to listen for <em>puppet-environments</em> commits on <em>future.git.commits</em> (c0dez available in the usual place)</li>
+<li><a href="http://vstone.eu/puppet-modules-in-jenkins/">Configure Jenkins for Puppet and puppet-lint</a></li>
+<li>Configure Jenkins to emit a message on (say) <em>future.jenkins.success</em> if the tests pass. (c0dez for that available ditto)</li>
+<li>Configure the stomp-git daemon on your puppetmaster to listen on <em>future.jenkins.success</em></li>
+<li>Er, <em>profit.</em></li>
+</ul>
+
+
+<p>Obviously enough, chaining in extra bits or constructing side-chains is relentlessly trivial.</p>
+
+<p>You could probably do it with a massive make or rake file, too.</p>
+]]></content>
+  </entry>
+  
+</feed>

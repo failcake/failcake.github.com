@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: all hardware is terrible | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/all-hardware-is-terrible/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2018-10-13T19:41:14+01:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Treating people like dicks (distance learning edition)]]></title>
+    <link href="http://failcake.github.com/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition/"/>
+    <updated>2014-01-15T20:58:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2014/01/15/treating-people-like-dicks-distance-learning-edition</id>
+    <content type="html"><![CDATA[<p>Today one of the old Solaris boxes expired. Well, I say 'box' and 'expired'. I mean '1U
+Solaris-X86-what-were-we-thinking machine' and 'fell into maintenance mode while I was eating breakfast'. And, in a
+truly extraordinary amount of digression and rambling, when I say 'what were we thinking' I probably mean 'The kit had
+actually managed to serve MySQL tolerably reliably for some 1500 days.'</p>
+
+<p>I don't know if you lot remember the uptime wars, but they were medium sized in the late nineties. Rather like Sleeper
+or Menswear, but with fewer annoying tunes and rather more waiting around. We learned better as soon as someone equated
+long uptimes with being an obvious target for some bollix with a copy of Metasploit.</p>
+
+<p>Anyway. A machine that hadn't been restarted since it was shoved in a rack, that was host to a pile of Solaris zones.
+What could possibly have gone wrong with that?</p>
+
+<p>It transpired that one set of binary logs or another had experienced a Jolly Interesting Time and had managed to confuse
+the zpool enough that the alleged hypervisor had thrown a strop and gone into maintenance mode. Which, um, <em>okay...</em></p>
+
+<p>Thankfully there are no beard-fondling Solaris types around to tell me that the next move was a Bad Idea, but mucking
+out the disks, clearing maintenance mode and restarting the beast looked to be the least-worst option.</p>
+
+<p>That is until we discover that the running network config had never been written back to various bits of /etc and indeed
+there were no build notes or valid excuses on either the deceased wiki or the somewhat shiny new one.</p>
+
+<p>There now followed a swearing competition.</p>
+
+<p>I suspect that what happened in 2009 was pretty much like what happened this morning. After the eighth or twelfth reboot, the
+people wanting the databases back won over 'I would like to make this network config survive a reboot surely the
+combined wit of the Sun/Oracle doc and three dozen assorted blogs and HOWTOs can't all be missing the vital something
+or other that we can't spot either...'</p>
+
+<p>It's still an unpleasant trick, though.</p>
+]]></content>
+  </entry>
+  
+</feed>

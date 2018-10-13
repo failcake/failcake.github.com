@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: it's better than watching telly | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/its-better-than-watching-telly/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2018-10-13T19:41:14+01:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Much todo about some things]]></title>
+    <link href="http://failcake.github.com/blog/2012/03/29/much-todo-about-some-things/"/>
+    <updated>2012-03-29T22:07:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/03/29/much-todo-about-some-things</id>
+    <content type="html"><![CDATA[<p>In the wake of Puppetcamp Edinburgh, which was jolly nice, I emitted about half a screen of rambling on one of the work IRC channels as a set of notes for future selves
+(pun very much intended). This is something I do rather a lot, because <em>obviously</em> it's impossible to perform any sort of useful thinking in an open-plan office
+filled with cheery sorts who Want Things Now. The drive/ride home is also a time for sudden and Hoffman-like inspirations.</p>
+
+<p>Anyway.</p>
+
+<p>Whatever I wrote has vanished off the end of the scrollback, so I'll have to make it all up again.</p>
+]]></content>
+  </entry>
+  
+</feed>

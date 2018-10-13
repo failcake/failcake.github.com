@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: CSKA Sofia | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/cska-sofia/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2018-10-13T19:41:14+01:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[There are two hard problems in computer science: caching]]></title>
+    <link href="http://failcake.github.com/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching/"/>
+    <updated>2013-10-27T23:18:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2013/10/27/there-are-2-hard-problems-in-computer-science-caching</id>
+    <content type="html"><![CDATA[<p><em>Title stolen from one of the myriad on the internet more cleverer and witty than wot I am. However, Octopress seems to
+have added its own twist, so you'll have to do the rest of the 'joke' yourselves...</em></p>
+
+<p>Years ago, not long after a visit to the Anarchist Bookshop and having become mildly peeved with the names of computers at Previous Employ (The failover pair named after the (in)appropriate Southpark characters, the ones that were funny if you were twelve... Mind, we <em>were</em> all twelve; that was part of the fun. Mind also that our American management decided to call us all 'spanners' because of I don't know what made up terrible morale-boosting exercise. Tip for the MBAs out there - if your entire English team has a fit of the giggles in an 'all hands', you have just said something hysterically inappropriate and they are <em>not</em> going to let on until you have the t-shirts printed), I started naming kit I built after anarchists. I think I got as far as kropotkin and bakunin before the option of voluntary redundancy came up and I followed my political convictions and ran pell-mell towards the £MONEY.</p>
+
+<p>The Americans had something of a sense of humour failure (or actually maybe they didn't in retrospect) and started naming machines nasdaq, bourse et al.</p>
+
+<p>Last year, self &amp; Sam(oth) start calling the notion of Devops, 'anarcho-syndicalism in action'.</p>
+
+<p>Actually, I think he found the reference elsewhere, but it totally struck home because a lot of the alleged problems that the modern middle class while male technocratic elite have to put up with (only decent latte halfway across town, nowhere to dry yr bike kit in the office) are best approached with an eye to Solidarity (with other teams. Don't let 'managers' or 'stakeholders' play at divide and conquer), Direct Action (fix those problems yourselves. You know your environment best. 'Management' 'control' is bollocks) and Worker's Self-Management (do not replicate process with code. Optimise it out. Build the environment in which you wish to work. No-one will do it for you.)</p>
+
+<p>And, obviously, this is a debased and pitiful version of a full-on political movement. Which is generally home to misogynistic rape-apologist dickheads it seems. (Who act like the polis at the first sign of trouble because that's the only model of dissent-management they have. There is a policeman inside all of our heads it must be stopped.)</p>
+
+<p>You may imagine my lack of surprise at discovering a tool called 'Serf' which lives at 'serfdom.io'</p>
+
+<p>Again, that could well be irony so sufficiently advanced that it is indistinguishable from reality. However, such
+Hayek-followers as I have come across didn't hold with that sort of malarkey.</p>
+
+<p>I guess this sort of thinking fits in well with the sort of sods who talk about being 'disruptive' but actually just want other people to provide free services for which they can charge rent.</p>
+
+<p>There's probably another 'talk' in this, but I think it's the sort of thing better done by the likes of Shanley Kane.</p>
+]]></content>
+  </entry>
+  
+</feed>

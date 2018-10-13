@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: pro-celebrity swearing | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/pro-celebrity-swearing/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2018-10-13T19:41:14+01:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Tumbleweed]]></title>
+    <link href="http://failcake.github.com/blog/2015/11/20/tumbleweed/"/>
+    <updated>2015-11-20T20:45:00+00:00</updated>
+    <id>http://failcake.github.com/blog/2015/11/20/tumbleweed</id>
+    <content type="html"><![CDATA[<p>... And then everbody left.</p>
+
+<p>I could write a thing about burnout, but I was too fried to notice when it happened. The interesting/exciting/disturbing
+thing about being properly stressed is that becomes entirely normal and you only realise something is broken when the
+music stops. Then all the things in your head that you've been ignoring pitch up at once and are like 'HELLO' and waving
+cartoon cricket-bats with nails and broken glass embedded.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Java-based diversionary tactics]]></title>
+    <link href="http://failcake.github.com/blog/2012/04/01/java-based-diversionary-tactics/"/>
+    <updated>2012-04-01T16:54:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/04/01/java-based-diversionary-tactics</id>
+    <content type="html"><![CDATA[<p>The other week, I stood in front of a room filled with my notional peers and allowed as how 'ActiveMQ setup was a bit of a pig, but once you'd got it working it was pretty simple.'</p>
+
+<p>[FX: Pause for hollow laughter]</p>
+
+<p>In retrospect, that statement was obviously going to come back and bite me just as soon as it had located its special big false teeth. Thus it came to pass on Wednesday night that two of the brokers had a meltdown, which in turn broke some experimental Nagios-over-Stomp code and so kept the poor sod who was on call in a state of near panic as <em>everything</em> reportedly failed.</p>
+
+<p>Oops.</p>
+
+<p>So when I pitch up on Thursday AM, I am welcomed by the whole team merrily grousing about 'your effing brokers' (Some software objects are like children and pets. When they're well behaved and/or looking cute for visitors, they're <em>our</em> children or pets. When they've just left a deposit behind the telly, they're <em>your</em> children or pets). Indeed it was a right mess. One broker had used all the memory allocated and as if for spite had run out of filehandles too. It was all a bit odd. Some poking about revealed [AMQ-jira ticket] which more-or-less explains itself and the fact that it looked an awful lot like an experimental client wasn't responding to messages as quickly as one might hope.</p>
+
+<!-- more -->
+
+
+<p>There's a page or two on the Apache-AMQ site about the problem with 'slow consumers'. The upshot seems to be that it is not yet a solved problem.</p>
+
+<p>Anyway. This is going to be a hand-waving description of the AMQ config we use. There may or may not be better ways of doing it, but this one (mostly) works for us.</p>
+
+<p>The most recent (and likely final) topology is a mesh (actually it looks like a wonky pentagram, but that's neither here nor there), in that each broker (there are seven) is directly connected to the other six. The theory is that since the individual brokers aren't guaranteed to stay up (more of that anon) each section of the network should have a pair of brokers available and all the clients should instantiate 'reliable' comms by connecting to a failover pair. In Ruby (as evidenced by MCollective itself) and PHP, this works rather well.</p>
+
+<p>A tiresome thing to note is that the XML entities/objects/annoyances that make up the broker specification <em>have to be in alphabetical order</em> which, um, riiight.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;br/>
+</span><span class='line'>  &lt;broker xmlns="http://activemq.apache.org/schema/core" brokerName="Your-broker-1" useJmx="true" persistent="false"></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>So far so good. Your various brokers should have different names.  The wrinkle here is that we turn off persistent messaging. The theory is that in the case of a broken consumer on a busy topic or queue - say you're moving metrics or logs - the broker won't get bogged down storing them to disk. As we have discovered, in that eventuality it'll try its best before getting wedged. I think we're in Linux OOM-killer territory here. There isn't a good answer so much as a least-worst one.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;destinationPolicy>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>&lt;policyMap&gt;
+</span><span class='line'>  &lt;policyEntries&gt;
+</span><span class='line'>    &lt;policyEntry topic="&gt;" advisoryForSlowConsumers="true" /&gt;
+</span><span class='line'>        &lt;policyEntry topic="&gt;" advisoryWhenFull="true" /&gt;
+</span><span class='line'>        &lt;policyEntry queue="*.reply.&gt;" gcInactiveDestinations="true" inactiveTimoutBeforeGC="300000" /&gt;
+</span><span class='line'>    &lt;policyEntry topic="metrics.&gt;"&gt;
+</span><span class='line'>      &lt;pendingMessageLimitStrategy&gt;
+</span><span class='line'>        &lt;constantPendingMessageLimitStrategy limit="50000"/&gt;
+</span><span class='line'>      &lt;/pendingMessageLimitStrategy&gt;
+</span><span class='line'>    &lt;/policyEntry&gt;
+</span><span class='line'>    &lt;policyEntry topic="future.events.&gt;"&gt;
+</span><span class='line'>        &lt;subscriptionRecoveryPolicy&gt;
+</span><span class='line'>            &lt;fixedCountSubscriptionRecoveryPolicy maximumSize="3"/&gt;
+</span><span class='line'>        &lt;/subscriptionRecoveryPolicy&gt;
+</span><span class='line'>        &lt;/policyEntry&gt;
+</span><span class='line'>    &lt;/policyEntries&gt;
+</span><span class='line'>&lt;/PolicyMap&gt;
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p>  &lt;/destinationPolicy></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Policy entries set per-topic/queue behaviours. For instance we want one of the ActiveMQ.Advisory topics that the brokers use for internal management to grass up slow consumers and another one to emit messages when any other topic fills up. The JSON they emit can be jolly handy for monitoring what's going on with a broker. The next-to-last entry sets a maximum message backlog for the metrics tree, and the final one allows anything consuming the future.events tree to see the last three messages in each subtopic. A kind of 'previously on future.events' if you will.</p>
+
+<p>If you have more than one broker, you'll need to set up some network connectors. The below examples fold in the changes for MCollective 1.3 which requires separate connectors for queues and topics. You'll also note that the URIs are specified as SSL connections. Setting this up requires some faffery with Java Keytool and some XML that specifies where to find the keystores. This will turn up later because of the alphabetical ordering thing.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;networkConnectors>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>&lt;networkConnector 
+</span><span class='line'>  name="broker1-broker2-topics" 
+</span><span class='line'>  uri="static:(ssl://an.ip.add.ress:6166)" 
+</span><span class='line'>  userName="YourUsername" 
+</span><span class='line'>  password="YourPW" 
+</span><span class='line'>  duplex="true" 
+</span><span class='line'>  networkTTL="1" 
+</span><span class='line'>  decreaseNetworkConsumerPriority="true"&gt;
+</span><span class='line'>  &lt;excludedDestinations&gt;
+</span><span class='line'>    &lt;queue physicalName="&gt;" /&gt;
+</span><span class='line'>  &lt;/excludedDestinations&gt;
+</span><span class='line'>&lt;/networkConnector&gt;
+</span><span class='line'>&lt;networkConnector 
+</span><span class='line'>  name="broker1-broker2-queues" 
+</span><span class='line'>  uri="static:(ssl://an.ip.add.ress:6166)"
+</span><span class='line'>  userName="YourUsername" 
+</span><span class='line'>  password="YourPW" 
+</span><span class='line'>  duplex="true" 
+</span><span class='line'>  networkTTL="1" 
+</span><span class='line'>  decreaseNetworkConsumerPriority="true"&gt;
+</span><span class='line'>  &lt;excludedDestinations&gt;
+</span><span class='line'>    &lt;topic physicalName="&gt;" /&gt;
+</span><span class='line'>  &lt;/excludedDestinations&gt;     
+</span><span class='line'>&lt;/networkConnector&gt;
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p>  &lt;/networkConnectors></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;plugins>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>&lt;authorizationPlugin&gt;
+</span><span class='line'>  &lt;map&gt;
+</span><span class='line'>    &lt;authorizationMap&gt;
+</span><span class='line'>      &lt;AuthorizationEntries&gt;
+</span><span class='line'>        &lt;authorizationEntry queue="&gt;" write="admins" read="admins" admin="admins" /&gt;
+</span><span class='line'>        &lt;authorizationEntry topic="&gt;" write="admins" read="admins" admin="admins" /&gt;
+</span><span class='line'>        &lt;authorizationEntry queue="mcollective.&gt;" write="admins" read="admins" admin="admins" /&gt;
+</span><span class='line'>        &lt;authorizationEntry topic="mcollective.&gt;" write="admins" read="admins" admin="admins" /&gt;
+</span><span class='line'>      &lt;/authorizationEntries&gt;
+</span><span class='line'>    &lt;/authorizationMap&gt;
+</span><span class='line'>  &lt;/Map&gt;
+</span><span class='line'>&lt;/authorizationPlugin&gt;
+</span><span class='line'>
+</span><span class='line'>&lt;simpleAuthenticationPlugin&gt;
+</span><span class='line'>  &lt;users&gt;
+</span><span class='line'>    &lt;authenticationUser username="YourUsername" password="YourPW" groups="admins,everyone"/&gt;
+</span><span class='line'>    &lt;authenticationUser username="Joe-Sysadmin" password="JoesPW" groups="admins,everyone"/&gt;
+</span><span class='line'>  &lt;/users&gt;
+</span><span class='line'>&lt;/SimpleAuthenticationPlugin&gt;
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p>  &lt;/plugins></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>Topics, queues and users. Allow admin users to read, write (and thus create, which is somewhat crucial) topics and queues. Also set up some of those admin users. Since the brokers don't create the topics or queues until something actually starts writing to one, one could envisage a situation where the only entries in the config file are those giving admin rights. Further, since the Java code is capable of doing its user-management via LDAP, one ought to be able to dispense with the hard-coded user entries. Since one has to restart the brokers each time the config files are changed, this would likely be a Good Thing. As it is, there are a pair of brokers in each VLAN and we take care to specify that clients should expect to do failover between them.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;sslContext>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>&lt;sslContext keyStore="file:${activemq.base}/conf/broker.ks" keyStorePassword="TopSecret" trustStore="file:${activemq.base}/conf/client.ts" trustStorePassword="SecretTop"/&gt;
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p>  &lt;/SslContext></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>SSL. What I have taken to doing is generating a certificate for each broker and storing it in broker.ks. Then I export the certificates and generate a client.ts file containing all the 'other' certificates. There's probably a better way of doing it.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;transportConnectors>&lt;/p>
+</span><span class='line'>
+</span><span class='line'>&lt;pre>&lt;code>&lt;transportConnector name="openwire" uri="ssl://0.0.0.0:6166?socketBufferSize=131072?ioBufferSize=16384"/&gt;
+</span><span class='line'>&lt;transportConnector name="stomp" uri="stomp+nio://0.0.0.0:61613?socketBufferSize=131072?ioBufferSize=16384?transport.closeAsync=false"/&gt;
+</span><span class='line'>&lt;/code>&lt;/pre>
+</span><span class='line'>
+</span><span class='line'>&lt;p>  &lt;/transportConnectors></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p>You will need some transports. Stomp for the MCollective rig and our Ruby/PHP/Perl clients, Openwire for the Java-native messaging used by the inter-broker links.</p>
+
+<p><div class='bogus-wrapper'><notextile><figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>&lt;/broker></span></code></pre></td></tr></table></div></figure></notextile></div></p>
+
+<p><em>Fin.</em></p>
+]]></content>
+  </entry>
+  
+</feed>

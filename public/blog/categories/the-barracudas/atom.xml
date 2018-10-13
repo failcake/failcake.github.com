@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: The Barracudas | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/the-barracudas/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2018-10-13T19:41:14+01:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[In which there is silence and excuses for same]]></title>
+    <link href="http://failcake.github.com/blog/2012/09/05/in-which-there-is-silence-and-excuses-for-same/"/>
+    <updated>2012-09-05T19:48:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2012/09/05/in-which-there-is-silence-and-excuses-for-same</id>
+    <content type="html"><![CDATA[<p>Hello. Where on earth did the last few months go? I guess I could blame it having been
+Grand Tour season (the Giro, the Tour and now the Vuelta) which has meant that I've been
+watching sweaty men in lycra pedal up the sides of mountains for three weeks at a time.</p>
+
+<p>I guess I can also blame one of those periods when several mildly concerning things
+happen in rapid order like a conspiring mob of buses, and when the smoke clears you're
+somewhere grim like Burnt Oak, Oldland Common or Quedgeley.</p>
+
+<p>Anyway. Let's see what happens next.</p>
+]]></content>
+  </entry>
+  
+</feed>
