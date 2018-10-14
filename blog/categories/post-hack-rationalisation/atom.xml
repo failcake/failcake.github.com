@@ -4,7 +4,7 @@
   <title><![CDATA[Category: post-hack rationalisation | Devops malarkey]]></title>
   <link href="http://failcake.github.com/blog/categories/post-hack-rationalisation/atom.xml" rel="self"/>
   <link href="http://failcake.github.com/"/>
-  <updated>2018-10-14T18:32:38+01:00</updated>
+  <updated>2018-10-14T22:31:33+01:00</updated>
   <id>http://failcake.github.com/</id>
   <author>
     <name><![CDATA[Bodge and Guesswork]]></name>
@@ -12,6 +12,152 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Not Invented Here (Kubernetes remix)]]></title>
+    <link href="http://failcake.github.com/blog/2018/10/14/not-invented-here-kubernetes-remix/"/>
+    <updated>2018-10-14T21:04:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2018/10/14/not-invented-here-kubernetes-remix</id>
+    <content type="html"><![CDATA[<p>For the last yea-many months, I've been hacking on actual Kubernetes. It has been/is being really very interesting, and
+that's only partly the precursor to an 'interesting times' riff. I have learned many things.</p>
+
+<ul>
+<li><p>Anyone who says you don't need any ops experience/people is lying through their teeth. The doc about how to make yr
+site 'production ready' advises you to carve out your own netblock(s) from within a lump of 10/8, allocate subnets for
+various systems, string them together with load balancers, consider capacity plans and redundancy, logging, monitoring,
+backups, security and access control. None of these things are beyond the wit of most people, but they're more likely to
+be back-of-envelope stuff for yr average jobbing Unix admin than most other technical types.</p></li>
+<li><p>Deployment tools/strategies seem, thus far at least, to consider it a job well done if they start/bounce/replace a
+single container. Which, well, is really quite a lot of a Noddy job.</p></li>
+<li><p>There is a thing called Helm, which is jolly handy. It's a package-manager for Kubernetes. If you've come from an ops
+background, then you'll be familiar with the idea that a running (web)app is only half of the job, and generating
+something versioned and deployable is a much more useful target.  Yes I know containers are versioned and deployable,
+but see how far you get with that attitude with K8S as a target. Just a simple matter of YAML, is it? Fine. I'll wait
+while you grovel through a pile of similar-looking files, looking for the right version tag.</p></li>
+</ul>
+
+
+<p>The first thing can be solved (FAVO 'solved') with Terrorform. The only nice thing I can say about Terrorform is that it
+works, mostly as advertised. A quite startling feature of the thing is that if you want to change something about a K8S
+cluster on GCloud with Terrorform, it will blow the cluster away and build you a new one. Now I guess this is probably
+less of a surprise if you've a set of redundant clusters in multiple zones, but it's still not the sort of behaviour
+that one might hope for.</p>
+
+<p>After that, Helm is a useful tool.</p>
+
+<p>However, The Product is a collection of helm charts flying in close formation, and rightly so since generating a
+monolith is a daft idea and being able to tinker with subsystems in isolation is a useful thing. So I found myself
+typing 'helm install thing, helm install other-thing, helm upgrade this-thing' quite a lot, which became trivially
+fat-fingerable. As I discovered when a routine upgrade toasted a beta cluster.</p>
+
+<p>I poked around at a couple of the available things which alleged they could make this sort of malarkey go away, and they
+were either complete workflows which assume their way is best (Ho ho ho. No.) or just seemed to be complicated YAML
+generators. I am really very much <em>not</em> interested in generating very similar piles of inpenetrable YAML that I have to
+keep in version control. The impenetrable YAML should only ever exist on the target cluster and not really be the thing
+that is fiddled with by humans, unless they like stabbing themselves in the leg with a fork or something.</p>
+
+<p>So I lashed up a thing that ran helm commands in the right order for me, made sure that the cluster I thought I was
+looking at was the actual target, did some elementary access config and made sure the storage classes I expected were
+where they should be. Then I could put much fewer things into the git repository that defined a given site/cluster and
+repeat myself as seldom as possible.</p>
+
+<p>Here's a really simple example that installs Prometheus, Grafana, a cert-manager and an Ingress. Obviously you'd not do
+this in an environment where you wanted Prometheus to work, since there's nothing for it to monitor.</p>
+
+<h2>```</h2>
+
+<p>context: (your kubectl context goes here. D'you think I'd leave one of ours to look at?)</p>
+
+<p>secrets:                                                                                                                                 <br/>
+  - dockerhub</p>
+
+<p>logfile: notgrove.log                                                                                                                    <br/>
+debug: false</p>
+
+<p>charts:                                                                                                                                  <br/>
+  naunton:</p>
+
+<pre><code>values: helm-values/nginx.yaml                                                                                                         
+chart:  stable/nginx-ingress                                                                                                           
+</code></pre>
+
+<p>  shuthonger:</p>
+
+<pre><code>values: helm-values/kube-lego.yaml                                                                                                     
+chart:  stable/kube-lego                                                                                                               
+</code></pre>
+
+<p>  turkdean:</p>
+
+<pre><code>values: helm-values/prometheus.yaml                                                                                                    
+chart:  stable/prometheus                                                                                                              
+</code></pre>
+
+<p>  queenhill:</p>
+
+<pre><code>values: helm-values/grafana.yaml                                                                                                       
+chart: stable/grafana        
+</code></pre>
+
+<p>```</p>
+
+<p>Because I come  from Puppet-land, that config file gets called a manifest.yaml.</p>
+
+<ul>
+<li>context is the name of the target cluster. The tool expects to have the right permissions to access same.</li>
+<li>secrets are, er, a list of k8s secrets you may need to have configured before Helm will work.</li>
+<li>logfile should be obvious.</li>
+<li>debug ditto.</li>
+<li>charts is a list of Helm charts, their local config values that are different from the defaults and where to find
+them.</li>
+</ul>
+
+
+<p>That last bit implies there's some directory structure. Here it is:
+<code>
+drwxrwxr-x  5 jhr jhr 4096 Jul  9 13:22 .
+drwxrwxr-x 22 jhr jhr 4096 Oct  2 10:39 ..
+drwxrwxr-x  2 jhr jhr 4096 Jul  9 13:22 access
+drwxrwxr-x  2 jhr jhr 4096 Jul  9 13:22 cluster-setup
+drwxrwxr-x  2 jhr jhr 4096 Jul  9 13:22 helm-values
+-rw-rw-r--  1 jhr jhr  467 Jul  9 13:22 manifest.yaml
+-rw-rw-r--  1 jhr jhr 1514 Jul  9 13:22 README.md
+</code></p>
+
+<ul>
+<li>access contains cluster config to do with roles and/or pod security.</li>
+<li>cluster-setup contains things like storage class config.</li>
+<li>helm-values are (somewhat unsurprisingly) where the values.yaml files for the Helm charts live.</li>
+</ul>
+
+
+<p>As you might guess, the tool processes the contents of those directories in order, so you can be fairly sure that your
+storage classes will exist before something in a Helm chart tries to allocate a PersistentVolumeClaim that you'd prefer
+was SSD instead of default spinny rust.</p>
+
+<p>And that implies there's a tool with some options:
+```
+km [OPTION] ... (install|DELETE|upgrade)</p>
+
+<p>-h, --help:
+  show help</p>
+
+<p>-f, --file [name]:
+  filename of manifest. Usually manifest.yaml</p>
+
+<p>-n, --namespace [namespace]:
+  k8s namespace to create and use for this installation.</p>
+
+<p>-j, --jfdi
+  Don't stop and ask for confirmation that you're about to do something terrible.</p>
+
+<p>install, upgrade or delete. Actions. Yes.
+```</p>
+
+<p>That's quite enough typing for one evening. I should imagine that I'll return to this to explain it better, show what it
+looks like running and point at the relevant github repos.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[More and/or different tumbleweed]]></title>
@@ -199,36 +345,6 @@ exec { 'rebuild':
 <p>... Which is lifted wholesale from
 <a href="https://github.com/jordansissel/puppet-examples/tree/master/unmanaged-file-notify">here.</a> Either we've found one of the non-terrible use cases for this hack, or I'll be
 writing another rambling post in a few months when I've had a better idea.</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[A hazelnut in every bite]]></title>
-    <link href="http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite/"/>
-    <updated>2012-04-19T15:20:00+01:00</updated>
-    <id>http://failcake.github.com/blog/2012/04/19/a-hazelnut-in-every-bite</id>
-    <content type="html"><![CDATA[<p>An obvious question is 'Why on earth bother with all this message-wanging gubbins? Isn't mail and/or SSH good enough for you?' to which the glib answer is 'No it isn't.'</p>
-
-<p>A longer answer involves spotting the really obvious problem in my last post. That is 'Ok, so you've bodged in some code that'll auto-update your live puppetmaster tree on a commit to that repository. What are the chances that said commit is b0rked and causes an epic cake-fail?'</p>
-
-<p>Well, in theory you're committing to a develop branch which only one or two of your machines are following, because that's the entire point of having the dynamic branch rig in the first place. However, PEBCAK happens and perhaps you should have a Jenkins instance that sanity-checks (as much as is possible, anyway) the puppet code that's just been committed.</p>
-
-<p>Hurrah! Problem solved! Let's have one of those!</p>
-
-<p>I don't know how you'd plumb something like that into another environment, but this is how it works here:</p>
-
-<ul>
-<li>Configure the stomp-jenkins daemon to listen for <em>puppet-environments</em> commits on <em>future.git.commits</em> (c0dez available in the usual place)</li>
-<li><a href="http://vstone.eu/puppet-modules-in-jenkins/">Configure Jenkins for Puppet and puppet-lint</a></li>
-<li>Configure Jenkins to emit a message on (say) <em>future.jenkins.success</em> if the tests pass. (c0dez for that available ditto)</li>
-<li>Configure the stomp-git daemon on your puppetmaster to listen on <em>future.jenkins.success</em></li>
-<li>Er, <em>profit.</em></li>
-</ul>
-
-
-<p>Obviously enough, chaining in extra bits or constructing side-chains is relentlessly trivial.</p>
-
-<p>You could probably do it with a massive make or rake file, too.</p>
 ]]></content>
   </entry>
   

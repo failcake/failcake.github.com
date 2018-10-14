@@ -1,0 +1,436 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Not Invented Here (Kubernetes remix) - Devops malarkey</title>
+  <meta name="author" content="Bodge and Guesswork">
+
+  
+  <meta name="description" content="For the last yea-many months, I&#8217;ve been hacking on actual Kubernetes. It has been/is being really very interesting, and
+that&#8217;s only &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://failcake.github.com/blog/2018/10/14/not-invented-here-kubernetes-remix">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Devops malarkey" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/lib/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+
+  
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Devops malarkey</a></h1>
+  
+    <h2>Success. Failure. Cake.</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  <li><a href="/atom.xml" rel="subscribe-rss" title="subscribe via RSS">RSS</a></li>
+  
+</ul>
+  
+<form action="http://google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:failcake.github.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/about.html">About</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Not Invented Here (Kubernetes Remix)</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-10-14T21:04:00+01:00" pubdate data-updated="true">Oct 14<span>th</span>, 2018</time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>For the last yea-many months, I&#8217;ve been hacking on actual Kubernetes. It has been/is being really very interesting, and
+that&#8217;s only partly the precursor to an &#8216;interesting times&#8217; riff. I have learned many things.</p>
+
+<ul>
+<li><p>Anyone who says you don&#8217;t need any ops experience/people is lying through their teeth. The doc about how to make yr
+site &#8216;production ready&#8217; advises you to carve out your own netblock(s) from within a lump of 10/8, allocate subnets for
+various systems, string them together with load balancers, consider capacity plans and redundancy, logging, monitoring,
+backups, security and access control. None of these things are beyond the wit of most people, but they&#8217;re more likely to
+be back-of-envelope stuff for yr average jobbing Unix admin than most other technical types.</p></li>
+<li><p>Deployment tools/strategies seem, thus far at least, to consider it a job well done if they start/bounce/replace a
+single container. Which, well, is really quite a lot of a Noddy job.</p></li>
+<li><p>There is a thing called Helm, which is jolly handy. It&#8217;s a package-manager for Kubernetes. If you&#8217;ve come from an ops
+background, then you&#8217;ll be familiar with the idea that a running (web)app is only half of the job, and generating
+something versioned and deployable is a much more useful target.  Yes I know containers are versioned and deployable,
+but see how far you get with that attitude with K8S as a target. Just a simple matter of YAML, is it? Fine. I&#8217;ll wait
+while you grovel through a pile of similar-looking files, looking for the right version tag.</p></li>
+</ul>
+
+
+<p>The first thing can be solved (FAVO &#8216;solved&#8217;) with Terrorform. The only nice thing I can say about Terrorform is that it
+works, mostly as advertised. A quite startling feature of the thing is that if you want to change something about a K8S
+cluster on GCloud with Terrorform, it will blow the cluster away and build you a new one. Now I guess this is probably
+less of a surprise if you&#8217;ve a set of redundant clusters in multiple zones, but it&#8217;s still not the sort of behaviour
+that one might hope for.</p>
+
+<p>After that, Helm is a useful tool.</p>
+
+<p>However, The Product is a collection of helm charts flying in close formation, and rightly so since generating a
+monolith is a daft idea and being able to tinker with subsystems in isolation is a useful thing. So I found myself
+typing &#8216;helm install thing, helm install other-thing, helm upgrade this-thing&#8217; quite a lot, which became trivially
+fat-fingerable. As I discovered when a routine upgrade toasted a beta cluster.</p>
+
+<p>I poked around at a couple of the available things which alleged they could make this sort of malarkey go away, and they
+were either complete workflows which assume their way is best (Ho ho ho. No.) or just seemed to be complicated YAML
+generators. I am really very much <em>not</em> interested in generating very similar piles of inpenetrable YAML that I have to
+keep in version control. The impenetrable YAML should only ever exist on the target cluster and not really be the thing
+that is fiddled with by humans, unless they like stabbing themselves in the leg with a fork or something.</p>
+
+<p>So I lashed up a thing that ran helm commands in the right order for me, made sure that the cluster I thought I was
+looking at was the actual target, did some elementary access config and made sure the storage classes I expected were
+where they should be. Then I could put much fewer things into the git repository that defined a given site/cluster and
+repeat myself as seldom as possible.</p>
+
+<p>Here&#8217;s a really simple example that installs Prometheus, Grafana, a cert-manager and an Ingress. Obviously you&#8217;d not do
+this in an environment where you wanted Prometheus to work, since there&#8217;s nothing for it to monitor.</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>---
+</span><span class='line'>
+</span><span class='line'>context: (your kubectl context goes here. D'you think I'd leave one of ours to look at?)
+</span><span class='line'>                                                                                                                                           
+</span><span class='line'>secrets:                                                                                                                                   
+</span><span class='line'>  - dockerhub                                                                                                                              
+</span><span class='line'>                                                                                                                                           
+</span><span class='line'>logfile: notgrove.log                                                                                                                      
+</span><span class='line'>debug: false                                                                                                                               
+</span><span class='line'>                                                                                                                                           
+</span><span class='line'>charts:                                                                                                                                    
+</span><span class='line'>  naunton:                                                                                                                                 
+</span><span class='line'>    values: helm-values/nginx.yaml                                                                                                         
+</span><span class='line'>    chart:  stable/nginx-ingress                                                                                                           
+</span><span class='line'>  shuthonger:                                                                                                                              
+</span><span class='line'>    values: helm-values/kube-lego.yaml                                                                                                     
+</span><span class='line'>    chart:  stable/kube-lego                                                                                                               
+</span><span class='line'>  turkdean:                                                                                                                                
+</span><span class='line'>    values: helm-values/prometheus.yaml                                                                                                    
+</span><span class='line'>    chart:  stable/prometheus                                                                                                              
+</span><span class='line'>  queenhill:                                                                                                                               
+</span><span class='line'>    values: helm-values/grafana.yaml                                                                                                       
+</span><span class='line'>    chart: stable/grafana        
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Because I come  from Puppet-land, that config file gets called a manifest.yaml.</p>
+
+<ul>
+<li>context is the name of the target cluster. The tool expects to have the right permissions to access same.</li>
+<li>secrets are, er, a list of k8s secrets you may need to have configured before Helm will work.</li>
+<li>logfile should be obvious.</li>
+<li>debug ditto.</li>
+<li>charts is a list of Helm charts, their local config values that are different from the defaults and where to find
+them.</li>
+</ul>
+
+
+<p>That last bit implies there&#8217;s some directory structure. Here it is:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>drwxrwxr-x  5 jhr jhr 4096 Jul  9 13:22 .
+</span><span class='line'>drwxrwxr-x 22 jhr jhr 4096 Oct  2 10:39 ..
+</span><span class='line'>drwxrwxr-x  2 jhr jhr 4096 Jul  9 13:22 access
+</span><span class='line'>drwxrwxr-x  2 jhr jhr 4096 Jul  9 13:22 cluster-setup
+</span><span class='line'>drwxrwxr-x  2 jhr jhr 4096 Jul  9 13:22 helm-values
+</span><span class='line'>-rw-rw-r--  1 jhr jhr  467 Jul  9 13:22 manifest.yaml
+</span><span class='line'>-rw-rw-r--  1 jhr jhr 1514 Jul  9 13:22 README.md</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li>access contains cluster config to do with roles and/or pod security.</li>
+<li>cluster-setup contains things like storage class config.</li>
+<li>helm-values are (somewhat unsurprisingly) where the values.yaml files for the Helm charts live.</li>
+</ul>
+
+
+<p>As you might guess, the tool processes the contents of those directories in order, so you can be fairly sure that your
+storage classes will exist before something in a Helm chart tries to allocate a PersistentVolumeClaim that you&#8217;d prefer
+was SSD instead of default spinny rust.</p>
+
+<p>And that implies there&#8217;s a tool with some options:</p>
+
+<figure class='code'><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+</pre></td><td class='code'><pre><code class=''><span class='line'>km [OPTION] ... (install|DELETE|upgrade)
+</span><span class='line'>
+</span><span class='line'>-h, --help:
+</span><span class='line'>  show help
+</span><span class='line'>
+</span><span class='line'>-f, --file [name]:
+</span><span class='line'>  filename of manifest. Usually manifest.yaml
+</span><span class='line'>
+</span><span class='line'>-n, --namespace [namespace]:
+</span><span class='line'>  k8s namespace to create and use for this installation.
+</span><span class='line'>
+</span><span class='line'>-j, --jfdi
+</span><span class='line'>  Don't stop and ask for confirmation that you're about to do something terrible.
+</span><span class='line'>
+</span><span class='line'>install, upgrade or delete. Actions. Yes.</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That&#8217;s quite enough typing for one evening. I should imagine that I&#8217;ll return to this to explain it better, show what it
+looks like running and point at the relevant github repos.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">JHR</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2018-10-14T21:04:00+01:00" pubdate data-updated="true">Oct 14<span>th</span>, 2018</time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/other-peoples-systems-are-terrible/'>other people's systems are terrible</a>, <a class='category' href='/blog/categories/post-hack-rationalisation/'>post-hack rationalisation</a>, <a class='category' href='/blog/categories/the-knights-who-say-nih/'>the knights who say NIH</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="http://twitter.com/share" class="twitter-share-button" data-url="http://failcake.github.com/blog/2018/10/14/not-invented-here-kubernetes-remix/" data-via="_JHR_" data-counturl="http://failcake.github.com/blog/2018/10/14/not-invented-here-kubernetes-remix/" >Tweet</a>
+  
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2018/10/14/technical-intermission/" title="Previous Post: Technical intermission">&laquo; Technical intermission</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+</div>
+
+<aside class="sidebar">
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2018/10/14/not-invented-here-kubernetes-remix/">Not Invented Here (Kubernetes remix)</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/10/14/technical-intermission/">Technical intermission</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2018/10/13/more-and-slash-or-different-tumbleweed/">More and/or different tumbleweed</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2017/04/05/stirrings-from-the-pit-dns/">Stirrings from the pit: DNS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2015/11/20/tumbleweed/">Tumbleweed</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating...</li>
+  </ul>
+  
+  <a href="https://github.com/hirez">@hirez</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'hirez',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+<section>
+  <h1>Latest Tweets</h1>
+  <ul id="tweets">
+    <li class="loading">Status updating...</li>
+  </ul>
+  <script type="text/javascript">
+    $.domReady(function(){
+      getTwitterFeed("_JHR_", 4, false);
+    });
+  </script>
+  <script src="/javascripts/twitter.js" type="text/javascript"> </script>
+  
+    <a href="http://twitter.com/_JHR_" class="twitter-follow-button" data-show-count="false">Follow @_JHR_</a>
+  
+</section>
+
+
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2018 - Bodge and Guesswork -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = 'http://platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+
+
+</body>
+</html>
