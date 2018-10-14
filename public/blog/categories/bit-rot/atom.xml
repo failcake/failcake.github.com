@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: bit-rot | Devops malarkey]]></title>
+  <link href="http://failcake.github.com/blog/categories/bit-rot/atom.xml" rel="self"/>
+  <link href="http://failcake.github.com/"/>
+  <updated>2018-10-14T18:32:38+01:00</updated>
+  <id>http://failcake.github.com/</id>
+  <author>
+    <name><![CDATA[Bodge and Guesswork]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Technical intermission]]></title>
+    <link href="http://failcake.github.com/blog/2018/10/14/technical-intermission/"/>
+    <updated>2018-10-14T18:14:00+01:00</updated>
+    <id>http://failcake.github.com/blog/2018/10/14/technical-intermission</id>
+    <content type="html"><![CDATA[<p>You'll have noticed (or not, since with any luck I am typing into a void. Or Google. Which is more or less the same thing.) that content has been somewhat sparse.</p>
+
+<p>As you might imagine, in the intervening time entire new technical edifices have been founded, matured and then fallen. Much like the careers of minor Britpop beat combos. If I cared I would go look for some evidence of the internet version of, say, Powder or, er, Menswear for a laugh. MongoDB? Who knows.</p>
+
+<p>What I'm failing to get at is that I'd forgotten how to drive Octopress-on-github, had failed to commit and push the last live post (the one about DNS), ruby had changed and no longer worked right because I'd forgotten how/why to drive rbenv, the way that github pages work had changed and it wasn't obvious that 'bundle exec rake deploy' was even doing a damn thing.</p>
+
+<p>I would like to present that as an example of an entirely rubbish workflow.</p>
+
+<p>So obviously I tried the same things as before, because doing the same thing twice always works. Then I thought 'This workflow is rubbish. I shall replace it with something I barely understand.' because <em>obviously.</em></p>
+
+<p>What thing do I barely understand best? Go.</p>
+
+<p>Are there Octopress->Hugo migration tools? Yes.</p>
+
+<p>Do they work as expected? Patches welcome!</p>
+
+<p>This is why people who don't have 'git push -u origin master' burned into their muscle memory use Wordpress. If your competition is the functional equivalent of a swift rochambeau to the trouser area, this is a warning.</p>
+
+<p>So anyway. This is a long-arse version of a 'Test. Please ignore.' message. Let's see if sarcasm works better than upgrading rbenv.</p>
+]]></content>
+  </entry>
+  
+</feed>
